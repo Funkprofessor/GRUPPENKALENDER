@@ -22,7 +22,11 @@ export type EventColor =
   | '#FAD7A0' // Beige
 
 // Wiederholungstypen für Events
-export type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
+export type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'monthly_weekday'
+
+// Wochentag für monatliche Wiederholungen
+export type Weekday = 1 | 2 | 3 | 4 | 5 | 6 | 7 // Montag = 1, Sonntag = 7
+export type WeekOfMonth = 1 | 2 | 3 | 4 | 5 // 1. Woche, 2. Woche, etc.
 
 // Raum-Definition
 export interface Room {
@@ -44,6 +48,8 @@ export interface Event {
   repeatType: RepeatType
   repeatUntil?: string // ISO 8601 Format für Enddatum der Wiederholung
   repeatGroupId?: string // ID für die Wiederholungsgruppe
+  repeatWeekday?: Weekday // Wochentag für monatliche Wiederholungen (1-7, Montag=1)
+  repeatWeekOfMonth?: WeekOfMonth // Woche im Monat für monatliche Wiederholungen (1-5)
   createdAt: string
   updatedAt: string
 }

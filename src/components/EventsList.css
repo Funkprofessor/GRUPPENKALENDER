@@ -156,6 +156,13 @@
   border-radius: 8px;
   overflow: hidden;
   background: white;
+  transition: all 0.2s ease;
+}
+
+.multi-day-event-group:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #667eea;
 }
 
 .multi-day-event-header {

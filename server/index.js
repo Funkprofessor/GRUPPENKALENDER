@@ -49,6 +49,9 @@ function initializeDatabase() {
       color TEXT NOT NULL,
       repeatType TEXT NOT NULL DEFAULT 'none',
       repeatUntil TEXT,
+      repeatGroupId TEXT,
+      repeatWeekday INTEGER,
+      repeatWeekOfMonth INTEGER,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
     )
@@ -70,6 +73,8 @@ function initializeDatabase() {
         console.error('Fehler beim Erstellen der Events-Tabelle:', err.message)
       } else {
         console.log('Events-Tabelle erstellt oder bereits vorhanden')
+        // Migration für neue Spalten
+        migrateEventsTable()
       }
     })
 
@@ -80,6 +85,25 @@ function initializeDatabase() {
       } else {
         console.log('Rooms-Tabelle erstellt oder bereits vorhanden')
         insertDefaultRooms()
+      }
+    })
+  })
+}
+
+/**
+ * Migration für Events-Tabelle (fügt neue Spalten hinzu)
+ */
+function migrateEventsTable() {
+  const migrations = [
+    'ALTER TABLE events ADD COLUMN repeatGroupId TEXT',
+    'ALTER TABLE events ADD COLUMN repeatWeekday INTEGER',
+    'ALTER TABLE events ADD COLUMN repeatWeekOfMonth INTEGER'
+  ]
+
+  migrations.forEach((migration, index) => {
+    db.run(migration, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error(`Fehler bei Migration ${index + 1}:`, err.message)
       }
     })
   })
@@ -265,6 +289,9 @@ app.post('/api/events', (req, res) => {
     color: eventData.color || '#FF6B6B',
     repeatType: eventData.repeatType || 'none',
     repeatUntil: eventData.repeatUntil || null,
+    repeatGroupId: eventData.repeatGroupId || null,
+    repeatWeekday: eventData.repeatWeekday || null,
+    repeatWeekOfMonth: eventData.repeatWeekOfMonth || null,
     createdAt: now,
     updatedAt: now
   }
@@ -273,14 +300,16 @@ app.post('/api/events', (req, res) => {
     INSERT INTO events (
       id, title, description, roomId, startDate, endDate, 
       startTime, endTime, color, repeatType, repeatUntil, 
+      repeatGroupId, repeatWeekday, repeatWeekOfMonth,
       createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `
 
   const params = [
     newEvent.id, newEvent.title, newEvent.description, newEvent.roomId,
     newEvent.startDate, newEvent.endDate, newEvent.startTime, newEvent.endTime,
     newEvent.color, newEvent.repeatType, newEvent.repeatUntil,
+    newEvent.repeatGroupId, newEvent.repeatWeekday, newEvent.repeatWeekOfMonth,
     newEvent.createdAt, newEvent.updatedAt
   ]
 
@@ -345,6 +374,9 @@ app.put('/api/events/:id', (req, res) => {
       color: eventData.color || existingEvent.color,
       repeatType: eventData.repeatType || existingEvent.repeatType,
       repeatUntil: eventData.repeatUntil || null,
+      repeatGroupId: eventData.repeatGroupId || existingEvent.repeatGroupId,
+      repeatWeekday: eventData.repeatWeekday || existingEvent.repeatWeekday,
+      repeatWeekOfMonth: eventData.repeatWeekOfMonth || existingEvent.repeatWeekOfMonth,
       updatedAt: new Date().toISOString()
     }
 
@@ -352,6 +384,7 @@ app.put('/api/events/:id', (req, res) => {
       UPDATE events SET 
         title = ?, description = ?, roomId = ?, startDate = ?, endDate = ?,
         startTime = ?, endTime = ?, color = ?, repeatType = ?, repeatUntil = ?,
+        repeatGroupId = ?, repeatWeekday = ?, repeatWeekOfMonth = ?,
         updatedAt = ?
       WHERE id = ?
     `
@@ -360,7 +393,8 @@ app.put('/api/events/:id', (req, res) => {
       updatedEvent.title, updatedEvent.description, updatedEvent.roomId,
       updatedEvent.startDate, updatedEvent.endDate, updatedEvent.startTime,
       updatedEvent.endTime, updatedEvent.color, updatedEvent.repeatType,
-      updatedEvent.repeatUntil, updatedEvent.updatedAt, id
+      updatedEvent.repeatUntil, updatedEvent.repeatGroupId, updatedEvent.repeatWeekday,
+      updatedEvent.repeatWeekOfMonth, updatedEvent.updatedAt, id
     ]
 
     db.run(query, params, function(err) {

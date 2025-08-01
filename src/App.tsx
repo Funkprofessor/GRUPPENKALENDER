@@ -142,6 +142,35 @@ function App() {
   const handleSaveMultipleEvents = async (eventsData: Omit<Event, 'id'>[]) => {
     try {
       console.log('handleSaveMultipleEvents aufgerufen mit:', eventsData.length, 'Events')
+      
+      // Wenn es sich um eine Aktualisierung eines bestehenden Events handelt
+      if (selectedEvent) {
+        // Lösche zuerst alle bestehenden Events der Wiederholungsgruppe
+        if (selectedEvent.repeatGroupId) {
+          const eventsToDelete = events.filter(e => e.repeatGroupId === selectedEvent.repeatGroupId)
+          for (const event of eventsToDelete) {
+            await deleteEvent(event.id)
+          }
+          setEvents(prev => prev.filter(e => e.repeatGroupId !== selectedEvent.repeatGroupId))
+        } else {
+          // Fallback: Lösche Events mit gleichem Titel und Wiederholungstyp
+          const eventsToDelete = events.filter(e => 
+            e.title === selectedEvent.title && 
+            e.repeatType === selectedEvent.repeatType && 
+            e.repeatUntil === selectedEvent.repeatUntil
+          )
+          for (const event of eventsToDelete) {
+            await deleteEvent(event.id)
+          }
+          setEvents(prev => prev.filter(e => 
+            !(e.title === selectedEvent.title && 
+              e.repeatType === selectedEvent.repeatType && 
+              e.repeatUntil === selectedEvent.repeatUntil)
+          ))
+        }
+      }
+      
+      // Erstelle die neuen Events
       const newEvents: Event[] = []
       for (const eventData of eventsData) {
         console.log('Erstelle Event:', eventData)

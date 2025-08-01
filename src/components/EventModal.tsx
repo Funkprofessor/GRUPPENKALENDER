@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { format, parse } from 'date-fns'
-import { Event, Room, EventColor, RepeatType, EventModalProps, CreateEventData, RepeatAction } from '../types'
+import { Event, Room, EventColor, RepeatType, EventModalProps, CreateEventData, RepeatAction, Weekday, WeekOfMonth } from '../types'
 import './EventModal.css'
 
 /**
@@ -38,6 +38,8 @@ const EventModal: React.FC<EventModalProps> = ({
   const [startMinute, setStartMinute] = useState('00')
   const [endHour, setEndHour] = useState('21')
   const [endMinute, setEndMinute] = useState('00')
+  const [repeatWeekday, setRepeatWeekday] = useState<Weekday>(1) // Montag als Standard
+  const [repeatWeekOfMonth, setRepeatWeekOfMonth] = useState<WeekOfMonth>(1) // 1. Woche als Standard
   
   // Zustand für Wiederholungsabfrage
   const [showRepeatDialog, setShowRepeatDialog] = useState(false)
@@ -56,6 +58,7 @@ const EventModal: React.FC<EventModalProps> = ({
     { value: 'daily', label: 'Täglich' },
     { value: 'weekly', label: 'Wöchentlich' },
     { value: 'monthly', label: 'Monatlich' },
+    { value: 'monthly_weekday', label: 'Jeden X. Wochentag im Monat' },
     { value: 'yearly', label: 'Jährlich' }
   ]
 
@@ -72,6 +75,26 @@ const EventModal: React.FC<EventModalProps> = ({
   const repeatIntervals = useMemo(() => {
     return Array.from({ length: 30 }, (_, i) => i + 1)
   }, [])
+
+  // Wochentage für monatliche Wiederholungen
+  const weekdays: { value: Weekday; label: string }[] = [
+    { value: 1, label: 'Montag' },
+    { value: 2, label: 'Dienstag' },
+    { value: 3, label: 'Mittwoch' },
+    { value: 4, label: 'Donnerstag' },
+    { value: 5, label: 'Freitag' },
+    { value: 6, label: 'Samstag' },
+    { value: 7, label: 'Sonntag' }
+  ]
+
+  // Wochen im Monat
+  const weeksOfMonth: { value: WeekOfMonth; label: string }[] = [
+    { value: 1, label: '1. Woche' },
+    { value: 2, label: '2. Woche' },
+    { value: 3, label: '3. Woche' },
+    { value: 4, label: '4. Woche' },
+    { value: 5, label: '5. Woche' }
+  ]
 
   // Initialisiere Formular mit Event-Daten wenn vorhanden
   useEffect(() => {
@@ -97,6 +120,14 @@ const EventModal: React.FC<EventModalProps> = ({
       setEndHour(endHour)
       setEndMinute(endMinute)
       setIsAllDay(event.startTime === '00:00' && event.endTime === '23:59')
+      
+      // Initialisiere Wochentag-Felder wenn vorhanden
+      if (event.repeatWeekday) {
+        setRepeatWeekday(event.repeatWeekday)
+      }
+      if (event.repeatWeekOfMonth) {
+        setRepeatWeekOfMonth(event.repeatWeekOfMonth)
+      }
     } else {
       // Neues Event mit vorausgewählten Werten oder Standardwerten
       setFormData({
@@ -118,6 +149,18 @@ const EventModal: React.FC<EventModalProps> = ({
       setEndHour('21')
       setEndMinute('00')
       setIsAllDay(false)
+      
+      // Automatisch Wochentag und Woche bestimmen basierend auf dem Startdatum
+      const startDate = new Date(preselectedDate || format(new Date(), 'yyyy-MM-dd'))
+      const dayOfWeek = startDate.getDay() // 0 = Sonntag, 1 = Montag, etc.
+      const weekOfMonth = Math.ceil(startDate.getDate() / 7) // 1-5
+      
+      // Konvertiere zu unseren Werten (Montag = 1, Sonntag = 7)
+      const weekday = dayOfWeek === 0 ? 7 : dayOfWeek
+      const weekOfMonthClamped = Math.min(Math.max(weekOfMonth, 1), 5) as WeekOfMonth
+      
+      setRepeatWeekday(weekday as Weekday)
+      setRepeatWeekOfMonth(weekOfMonthClamped)
     }
   }, [event, preselectedDate, preselectedRoomId, rooms])
 
@@ -230,7 +273,9 @@ const EventModal: React.FC<EventModalProps> = ({
         ...baseEvent,
         startDate: currentStartDate.toISOString().split('T')[0],
         endDate: currentEndDate.toISOString().split('T')[0],
-        repeatGroupId: repeatGroupId // Alle Events der Gruppe bekommen die gleiche ID
+        repeatGroupId: repeatGroupId, // Alle Events der Gruppe bekommen die gleiche ID
+        repeatWeekday: baseEvent.repeatWeekday,
+        repeatWeekOfMonth: baseEvent.repeatWeekOfMonth
       })
       
       // Berechne nächste Wiederholung basierend auf Intervall
@@ -246,6 +291,25 @@ const EventModal: React.FC<EventModalProps> = ({
         case 'monthly':
           currentStartDate.setMonth(currentStartDate.getMonth() + repeatInterval)
           currentEndDate.setMonth(currentEndDate.getMonth() + repeatInterval)
+          break
+        case 'monthly_weekday':
+          // Berechne den nächsten X. Wochentag im nächsten Monat
+          const nextMonth = new Date(currentStartDate)
+          nextMonth.setMonth(nextMonth.getMonth() + repeatInterval)
+          nextMonth.setDate(1) // Erster Tag des Monats
+          
+          // Finde den ersten Wochentag des gewünschten Typs im Monat
+          while (nextMonth.getDay() !== (repeatWeekday === 7 ? 0 : repeatWeekday)) {
+            nextMonth.setDate(nextMonth.getDate() + 1)
+          }
+          
+          // Gehe zur gewünschten Woche (1. Woche = 0-6 Tage, 2. Woche = 7-13 Tage, etc.)
+          const weekOffset = (repeatWeekOfMonth - 1) * 7
+          nextMonth.setDate(nextMonth.getDate() + weekOffset)
+          
+          currentStartDate = new Date(nextMonth)
+          currentEndDate = new Date(nextMonth)
+          currentEndDate.setDate(currentEndDate.getDate() + (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
           break
         case 'yearly':
           currentStartDate.setFullYear(currentStartDate.getFullYear() + repeatInterval)
@@ -299,6 +363,12 @@ const EventModal: React.FC<EventModalProps> = ({
       updatedFormData.startTime = '00:00'
       updatedFormData.endTime = '23:59'
       console.log('handleSave: Setting all-day times')
+    }
+
+    // Füge Wochentag-Felder hinzu wenn nötig
+    if (formData.repeatType === 'monthly_weekday') {
+      updatedFormData.repeatWeekday = repeatWeekday
+      updatedFormData.repeatWeekOfMonth = repeatWeekOfMonth
     }
     
     // Debug-Ausgabe für die zu speichernden Daten
@@ -393,20 +463,24 @@ const EventModal: React.FC<EventModalProps> = ({
       updatedFormData.startTime = '00:00'
       updatedFormData.endTime = '23:59'
     }
+
+    // Füge Wochentag-Felder hinzu wenn nötig
+    if (formData.repeatType === 'monthly_weekday') {
+      updatedFormData.repeatWeekday = repeatWeekday
+      updatedFormData.repeatWeekOfMonth = repeatWeekOfMonth
+    }
     
     if (!validateForm()) return
     
     if (action === 'single') {
       // Nur diesen Termin speichern
       if (event) {
-        // Bei bestehenden Events: erstelle ein neues Event ohne Wiederholung
-        const singleEvent = {
-          ...updatedFormData,
-          repeatType: 'none' as const,
-          repeatUntil: undefined,
-          repeatGroupId: undefined
+        // Bei bestehenden Events: aktualisiere das bestehende Event
+        const updatedEvent = {
+          ...event,
+          ...updatedFormData
         }
-        onSave(singleEvent)
+        onSave(updatedEvent)
       } else {
         // Bei neuen Events: speichere nur das erste Event ohne Wiederholung
         const singleEvent = {
@@ -659,8 +733,44 @@ const EventModal: React.FC<EventModalProps> = ({
                   {formData.repeatType === 'daily' && 'Tag(e)'}
                   {formData.repeatType === 'weekly' && 'Woche(n)'}
                   {formData.repeatType === 'monthly' && 'Monat(e)'}
+                  {formData.repeatType === 'monthly_weekday' && 'Monat(e)'}
                   {formData.repeatType === 'yearly' && 'Jahr(e)'}
                 </span>
+              </div>
+            </div>
+          )}
+
+          {/* Wochentag-Optionen für monatliche Wiederholungen */}
+          {formData.repeatType === 'monthly_weekday' && (
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="repeatWeekOfMonth">Woche</label>
+                <select
+                  id="repeatWeekOfMonth"
+                  value={repeatWeekOfMonth}
+                  onChange={e => setRepeatWeekOfMonth(Number(e.target.value) as WeekOfMonth)}
+                >
+                  {weeksOfMonth.map(week => (
+                    <option key={week.value} value={week.value}>
+                      {week.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="repeatWeekday">Wochentag</label>
+                <select
+                  id="repeatWeekday"
+                  value={repeatWeekday}
+                  onChange={e => setRepeatWeekday(Number(e.target.value) as Weekday)}
+                >
+                  {weekdays.map(day => (
+                    <option key={day.value} value={day.value}>
+                      {day.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           )}
