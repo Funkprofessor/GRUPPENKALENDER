@@ -1,0 +1,407 @@
+/* CSS-Stile für die Kalender-Komponente */
+
+.calendar-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Kalender-Navigation */
+.calendar-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.nav-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+  background: #5a6fd8;
+  transform: translateY(-1px);
+}
+
+.current-btn {
+  background: #28a745;
+}
+
+.current-btn:hover {
+  background: #218838;
+}
+
+.current-month {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  min-width: 200px;
+  text-align: center;
+}
+
+/* Kalender-Tabelle Container */
+.calendar-table-container {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  border: 1px solid #dee2e6;
+  max-height: calc(100vh - 120px);
+}
+
+/* Kalender-Tabelle */
+.calendar-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  table-layout: fixed;
+}
+
+/* Sticky Header */
+.calendar-header {
+  background: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.calendar-header th {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #f8f9fa;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Sticky linke Spalten */
+.sticky-left {
+  position: sticky;
+  left: 0;
+  background: white;
+  z-index: 50;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+}
+
+.sticky-top {
+  position: sticky;
+  top: 0;
+  background: #f8f9fa;
+  z-index: 100;
+}
+
+/* Spezielle Header-Styles */
+.header-date {
+  width: auto;
+  white-space: nowrap;
+  background: #f8f9fa;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  left: 0;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+}
+
+.header-day {
+  width: auto;
+  white-space: nowrap;
+  background: #f8f9fa;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  left: auto;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+}
+
+.header-room {
+  min-width: 150px;
+  background: #f8f9fa;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-right: 1px solid #dee2e6;
+}
+
+/* Kalender-Zeilen */
+.calendar-row {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
+}
+
+.calendar-row:hover {
+  background-color: #f8f9fa;
+}
+
+/* Kalender-Zellen */
+.calendar-cell {
+  padding: 0.5rem;
+  border-right: 1px solid #e9ecef;
+  vertical-align: top;
+  min-height: 80px;
+  position: relative;
+  background: white;
+}
+
+.calendar-date-cell {
+  padding: 0.25rem 0.125rem;
+  text-align: center;
+  background: white;
+  border-right: 2px solid #dee2e6;
+  width: auto;
+  white-space: nowrap;
+  position: sticky;
+  left: 0;
+  z-index: 50;
+}
+
+.calendar-day-cell {
+  padding: 0.25rem 0.125rem;
+  background: white;
+  border-right: 2px solid #dee2e6;
+  width: auto;
+  white-space: nowrap;
+  position: sticky;
+  left: auto;
+  z-index: 50;
+}
+
+/* Datum-Information */
+.date-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.date-number {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  line-height: 1;
+  margin: 0;
+}
+
+.date-month {
+  font-size: 0.7rem;
+  color: #666;
+  line-height: 1;
+  margin: 0;
+}
+
+/* Wochentag-Information */
+.day-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  justify-content: center;
+  height: 100%;
+}
+
+.day-name {
+  font-weight: 500;
+  color: #333;
+  font-size: 1.1rem;
+  line-height: 1;
+  margin: 0;
+}
+
+.holiday-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+}
+
+.holiday-badge {
+  font-size: 0.7rem;
+  padding: 0.0625rem 0.125rem;
+  color: white;
+  border-radius: 2px;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.holiday-badge[data-type="holiday"] {
+  background: #9b59b6;
+}
+
+.holiday-badge[data-type="school_holiday"] {
+  background: #2ecc71;
+}
+
+
+
+/* Zellen-Inhalt */
+.cell-content {
+  min-height: 60px;
+  position: relative;
+}
+
+/* Events in Zellen */
+.calendar-event {
+  margin-bottom: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.8rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.calendar-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Ganztägige Events */
+.all-day-event {
+  border-left: 4px solid rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+}
+
+/* Event-Fortsetzungen */
+.event-continuation {
+  border-radius: 0;
+  margin-bottom: 0.125rem;
+  padding: 0.125rem 0.25rem;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.event-continuation-indicator {
+  font-size: 0.6rem;
+  opacity: 0.8;
+}
+
+.event-continues {
+  border-right: none;
+  margin-right: 0;
+}
+
+.event-time {
+  font-weight: 600;
+  font-size: 0.7rem;
+  margin-bottom: 0.125rem;
+}
+
+.event-title {
+  font-weight: 500;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Add-Event Button in Zelle */
+.add-event-in-cell {
+  position: absolute;
+  bottom: 0.25rem;
+  right: 0.25rem;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.calendar-cell:hover .add-event-in-cell {
+  opacity: 1;
+}
+
+.add-event-in-cell:hover {
+  background: #667eea;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .calendar-table-container {
+    overflow-x: auto;
+  }
+  
+  .calendar-table {
+    min-width: 800px;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-navigation {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .current-month {
+    font-size: 1.2rem;
+    min-width: 150px;
+  }
+  
+  .nav-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+  
+  .calendar-header th {
+    padding: 0.75rem 0.25rem;
+    font-size: 0.9rem;
+    min-width: 100px;
+  }
+  
+  .calendar-cell {
+    padding: 0.25rem;
+    min-height: 60px;
+  }
+  
+  .calendar-date-cell,
+  .calendar-day-cell,
+  .calendar-holiday-cell {
+    padding: 0.5rem 0.25rem;
+  }
+  
+  .date-number {
+    font-size: 1rem;
+  }
+  
+  .day-name {
+    font-size: 0.9rem;
+  }
+  
+  .holiday-item {
+    font-size: 0.7rem;
+    padding: 0.125rem 0.25rem;
+  }
+} 
