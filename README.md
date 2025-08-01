@@ -46,20 +46,28 @@ cd GRUPPENKALENDER
 npm install
 ```
 
-### 3. Entwicklungsserver starten
+### 3. Anwendung starten
 
-#### Frontend (Port 3000)
+**Einziger Einstiegspunkt (Empfohlen):**
 ```bash
-npm run dev
+npm start
 ```
 
-#### Backend (Port 5000)
+**Alternative Einstiegspunkte:**
 ```bash
-npm run server
+npm run dev         # Entwicklungsmodus (Frontend + Backend)
+npm run frontend    # Nur Frontend-Server (Port 3000)
+npm run backend     # Nur Backend-Server (Port 5001)
 ```
 
 ### 4. Anwendung öffnen
 Öffnen Sie [http://localhost:3000](http://localhost:3000) in Ihrem Browser.
+
+**Produktionsmodus:**
+```bash
+NODE_ENV=production npm start
+```
+Öffnen Sie [http://localhost:5001](http://localhost:5001) in Ihrem Browser.
 
 ## Projektstruktur
 

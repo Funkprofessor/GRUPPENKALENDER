@@ -21,6 +21,20 @@ app.use(helmet()) // Sicherheits-Header
 app.use(cors()) // CORS für Frontend-Zugriff
 app.use(express.json()) // JSON-Parser
 
+// Statische Dateien im Produktionsmodus servieren
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '..', 'dist')
+  app.use(express.static(distPath))
+  
+  // Alle nicht-API Routen zur index.html weiterleiten (für React Router)
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      return next()
+    }
+    res.sendFile(path.join(distPath, 'index.html'))
+  })
+}
+
 // SQLite-Datenbank initialisieren
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) {
@@ -472,11 +486,11 @@ app.get('/api/health', (req, res) => {
   })
 })
 
-// 404-Handler
-app.use('*', (req, res) => {
+// 404-Handler nur für API-Routen
+app.use('/api/*', (req, res) => {
   res.status(404).json({
     success: false,
-    error: 'Endpoint nicht gefunden'
+    error: 'API-Endpoint nicht gefunden'
   })
 })
 
