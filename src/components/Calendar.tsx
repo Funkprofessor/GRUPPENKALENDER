@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react'
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getWeek, startOfWeek, endOfWeek } from 'date-fns'
+import React, { useState } from 'react'
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns'
 import { de } from 'date-fns/locale'
 import { Event, Room, CalendarProps } from '../types'
 import { getHolidaysForDate } from '../utils/holidays'
@@ -16,7 +16,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
   /**
    * Generiert alle Tage des aktuellen Monats
    */
-  const daysInMonth = useMemo(() => {
+  const daysInMonth = React.useMemo(() => {
     const start = startOfMonth(currentMonth)
     const end = endOfMonth(currentMonth)
     return eachDayOfInterval({ start, end })
@@ -25,7 +25,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
   /**
    * Gruppiert Events nach Datum und Raum
    */
-  const eventsByDateAndRoom = useMemo(() => {
+  const eventsByDateAndRoom = React.useMemo(() => {
     const grouped: Record<string, Record<string, Event[]>> = {}
     
     daysInMonth.forEach(day => {

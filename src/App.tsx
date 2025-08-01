@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import Calendar from './components/Calendar'
-import EventsList from './components/EventsList'
-import EventModal from './components/EventModal'
-import { Event, Room, RepeatAction } from './types'
+import { Event, Room, RepeatAction, CreateEventData } from './types'
 import { fetchEvents, createEvent, updateEvent, deleteEvent } from './api/events'
+import Calendar from './components/Calendar'
+import EventModal from './components/EventModal'
+import EventsList from './components/EventsList'
 import './App.css'
 
 /**
@@ -46,7 +46,8 @@ function App() {
       const fetchedEvents = await fetchEvents()
       setEvents(fetchedEvents)
     } catch (err) {
-      setError('Fehler beim Laden der Termine: ' + (err as Error).message)
+      console.error('Fehler beim Laden der Events:', err)
+      setError('Fehler beim Laden der Events: ' + (err as Error).message)
     } finally {
       setLoading(false)
     }
@@ -83,12 +84,12 @@ function App() {
   /**
    * Speichert ein Event (erstellt oder aktualisiert)
    */
-  const handleSaveEvent = async (eventData: Omit<Event, 'id'> | Event) => {
+  const handleSaveEvent = async (eventData: CreateEventData | Event) => {
     try {
-      if ('id' in eventData && eventData.id) {
+      if ('id' in eventData) {
         // Event aktualisieren
         const updatedEvent = await updateEvent(eventData.id, eventData)
-        setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e))
+        setEvents(prev => prev.map(e => e.id === eventData.id ? updatedEvent : e))
       } else {
         // Neues Event erstellen
         const newEvent = await createEvent(eventData)
@@ -96,8 +97,11 @@ function App() {
       }
       setIsModalOpen(false)
       setSelectedEvent(null)
+      setPreselectedDate(undefined)
+      setPreselectedRoomId(undefined)
     } catch (err) {
-      setError('Fehler beim Speichern: ' + (err as Error).message)
+      console.error('Fehler beim Speichern des Events:', err)
+      setError('Fehler beim Speichern des Events: ' + (err as Error).message)
     }
   }
 
@@ -139,7 +143,7 @@ function App() {
   /**
    * Speichert mehrere Events (für Wiederholungen)
    */
-  const handleSaveMultipleEvents = async (eventsData: Omit<Event, 'id'>[]) => {
+  const handleSaveMultipleEvents = async (eventsData: CreateEventData[]) => {
     try {
       console.log('handleSaveMultipleEvents aufgerufen mit:', eventsData.length, 'Events')
       
@@ -190,42 +194,43 @@ function App() {
   /**
    * Löscht ein Event
    */
-  const handleDeleteEvent = async (eventId: string, action?: 'single' | 'all') => {
+  const handleDeleteEvent = async (eventId: string, action?: RepeatAction) => {
     try {
-      if (action === 'all' && selectedEvent) {
-        // Alle Events der Wiederholung löschen
-        if (selectedEvent.repeatGroupId) {
-          // Wenn repeatGroupId vorhanden ist, lösche alle Events der Gruppe
-          const eventsToDelete = events.filter(e => e.repeatGroupId === selectedEvent.repeatGroupId)
+      if (action === 'all') {
+        // Lösche alle Events der Wiederholungsgruppe
+        const eventToDelete = events.find(e => e.id === eventId)
+        if (eventToDelete?.repeatGroupId) {
+          const eventsToDelete = events.filter(e => e.repeatGroupId === eventToDelete.repeatGroupId)
           for (const event of eventsToDelete) {
             await deleteEvent(event.id)
           }
-          setEvents(prev => prev.filter(e => e.repeatGroupId !== selectedEvent.repeatGroupId))
-        } else {
-          // Wenn keine repeatGroupId vorhanden ist, lösche alle Events mit gleichem Titel und Wiederholungstyp
+          setEvents(prev => prev.filter(e => e.repeatGroupId !== eventToDelete.repeatGroupId))
+        } else if (eventToDelete) {
+          // Fallback: Lösche Events mit gleichem Titel und Wiederholungstyp
           const eventsToDelete = events.filter(e => 
-            e.title === selectedEvent.title && 
-            e.repeatType === selectedEvent.repeatType && 
-            e.repeatUntil === selectedEvent.repeatUntil
+            e.title === eventToDelete.title && 
+            e.repeatType === eventToDelete.repeatType && 
+            e.repeatUntil === eventToDelete.repeatUntil
           )
           for (const event of eventsToDelete) {
             await deleteEvent(event.id)
           }
           setEvents(prev => prev.filter(e => 
-            !(e.title === selectedEvent.title && 
-              e.repeatType === selectedEvent.repeatType && 
-              e.repeatUntil === selectedEvent.repeatUntil)
+            !(e.title === eventToDelete.title && 
+              e.repeatType === eventToDelete.repeatType && 
+              e.repeatUntil === eventToDelete.repeatUntil)
           ))
         }
       } else {
-        // Nur das einzelne Event löschen
+        // Lösche nur das einzelne Event
         await deleteEvent(eventId)
         setEvents(prev => prev.filter(e => e.id !== eventId))
       }
       setIsModalOpen(false)
       setSelectedEvent(null)
     } catch (err) {
-      setError('Fehler beim Löschen: ' + (err as Error).message)
+      console.error('Fehler beim Löschen des Events:', err)
+      setError('Fehler beim Löschen des Events: ' + (err as Error).message)
     }
   }
 
@@ -303,7 +308,7 @@ function App() {
           rooms={rooms}
           onSave={handleSaveEvent}
           onSaveMultiple={handleSaveMultipleEvents}
-          onDelete={selectedEvent ? (action: RepeatAction) => handleDeleteEvent(selectedEvent.id, action) : undefined}
+          onDelete={selectedEvent ? (action?: RepeatAction) => handleDeleteEvent(selectedEvent.id, action) : undefined}
           onClose={() => {
             setIsModalOpen(false)
             setSelectedEvent(null)

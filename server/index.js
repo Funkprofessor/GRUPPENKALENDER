@@ -494,6 +494,13 @@ app.use('/api/*', (req, res) => {
   })
 })
 
+// Im Produktionsmodus: Alle anderen Routen zur index.html weiterleiten
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'))
+  })
+}
+
 // Error-Handler
 app.use((err, req, res, next) => {
   console.error('Server-Fehler:', err)

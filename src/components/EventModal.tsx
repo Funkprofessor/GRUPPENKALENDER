@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { format, parse } from 'date-fns'
-import { Event, Room, EventColor, RepeatType, EventModalProps, CreateEventData, RepeatAction, Weekday, WeekOfMonth } from '../types'
+import { format } from 'date-fns'
+import { Event, EventColor, RepeatType, EventModalProps, CreateEventData, RepeatAction, Weekday, WeekOfMonth } from '../types'
 import './EventModal.css'
 
 /**

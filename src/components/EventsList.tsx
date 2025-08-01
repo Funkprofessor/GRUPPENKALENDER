@@ -1,14 +1,8 @@
 import React, { useMemo } from 'react'
-import { format, parseISO, addDays, addWeeks, addMonths, addYears, isAfter, isBefore } from 'date-fns'
+import { format, addDays, addWeeks, addMonths, addYears, isAfter, isBefore } from 'date-fns'
 import { de } from 'date-fns/locale'
-import { Event } from '../types'
+import { Event, Room, EventsListProps } from '../types'
 import './EventsList.css'
-
-interface EventsListProps {
-  events: Event[]
-  rooms: { id: string; name: string }[]
-  onEventClick: (event: Event) => void
-}
 
 const EventsList: React.FC<EventsListProps> = ({ events, rooms, onEventClick }) => {
   // Gruppiere Events nach Datum und sortiere chronologisch
@@ -85,7 +79,7 @@ const EventsList: React.FC<EventsListProps> = ({ events, rooms, onEventClick }) 
   }
 
   const formatDate = (dateString: string) => {
-    const date = parseISO(dateString)
+    const date = new Date(dateString)
     return format(date, 'EEEE, dd.MM.yyyy', { locale: de })
   }
 
@@ -114,9 +108,9 @@ const EventsList: React.FC<EventsListProps> = ({ events, rooms, onEventClick }) 
       return null
     }
 
-    const startDate = parseISO(event.startDate)
-    const repeatUntil = parseISO(event.repeatUntil)
-    const fromDateParsed = parseISO(fromDate)
+    const startDate = new Date(event.startDate)
+    const repeatUntil = new Date(event.repeatUntil)
+    const fromDateParsed = new Date(fromDate)
 
     // Wenn das repeatUntil Datum in der Vergangenheit liegt
     if (isBefore(repeatUntil, fromDateParsed)) {

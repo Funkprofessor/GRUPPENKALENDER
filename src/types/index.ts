@@ -118,4 +118,11 @@ export interface CalendarProps {
   onEventClick: (event: Event) => void
   onAddEvent: () => void
   onAddEventWithPreselection?: (date: string, roomId: string) => void
+}
+
+// EventsList-Props
+export interface EventsListProps {
+  events: Event[]
+  rooms: Room[]
+  onEventClick: (event: Event) => void
 } 
