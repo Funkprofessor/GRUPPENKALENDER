@@ -355,10 +355,7 @@ const PrintModal: React.FC<PrintModalProps> = ({ isOpen, onClose, events, rooms 
               background-color: #f9f9f9;
             }
             
-            .calendar-table .sunday .day-number {
-              color: #d32f2f;
-              font-weight: bold;
-            }
+
             
             .calendar-table .today {
               background-color: #e3f2fd;
@@ -496,7 +493,7 @@ const PrintModal: React.FC<PrintModalProps> = ({ isOpen, onClose, events, rooms 
                       return `
                         <td class="room-column">
                           ${roomEvents.length > 0 ? 
-                            roomEvents.map(event => `
+                            roomEvents.map((event: Event) => `
                               <div class="event-item" style="border-left-color: ${event.color}">
                                 <div class="event-title">${event.title}</div>
                                 <div class="event-time">${event.startTime === '00:00' && event.endTime === '23:59' ? '' : `${event.startTime}${event.endTime !== '23:59' ? ` - ${event.endTime}` : ''}`}</div>
