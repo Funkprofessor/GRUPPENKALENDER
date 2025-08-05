@@ -84,6 +84,28 @@ function App() {
   }
 
   /**
+   * Öffnet das Modal zum Kopieren eines Events
+   */
+  const handleCopyEvent = (originalEvent: Event) => {
+    // Erstelle eine Kopie des Events ohne ID
+    const copiedEvent: Event = {
+      ...originalEvent,
+      id: '', // Leere ID für neues Event
+      title: `${originalEvent.title} (Kopie)`,
+      repeatType: 'none', // Kopie ist immer ein Einzeltermin
+      repeatUntil: undefined,
+      repeatGroupId: undefined,
+      repeatWeekday: undefined,
+      repeatWeekOfMonth: undefined,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    setSelectedEvent(copiedEvent)
+    setIsModalOpen(true)
+  }
+
+  /**
    * Speichert ein Event (erstellt oder aktualisiert)
    */
   const handleSaveEvent = async (eventData: CreateEventData | Event) => {
@@ -320,6 +342,7 @@ function App() {
           onSave={handleSaveEvent}
           onSaveMultiple={handleSaveMultipleEvents}
           onDelete={selectedEvent ? (action?: RepeatAction) => handleDeleteEvent(selectedEvent.id, action) : undefined}
+          onCopy={handleCopyEvent}
           onClose={() => {
             setIsModalOpen(false)
             setSelectedEvent(null)

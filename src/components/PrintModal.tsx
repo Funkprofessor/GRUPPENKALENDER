@@ -15,7 +15,6 @@ interface PrintModalProps {
 const PrintModal: React.FC<PrintModalProps> = ({ isOpen, onClose, events, rooms }) => {
   const [startDate, setStartDate] = useState<Date>(startOfMonth(new Date()))
   const [endDate, setEndDate] = useState<Date>(endOfMonth(new Date()))
-  const [selectedRoom, setSelectedRoom] = useState<string>('all')
   const [printMode, setPrintMode] = useState<'calendar' | 'table'>('calendar')
 
   if (!isOpen) return null
@@ -31,14 +30,10 @@ const PrintModal: React.FC<PrintModalProps> = ({ isOpen, onClose, events, rooms 
       // Prüfe ob Event sich mit dem gewählten Zeitraum überschneidet
       const overlaps = (eventStart <= endDate && eventEnd >= startDate)
       
-      // Prüfe Raum-Filter
-      const roomMatch = selectedRoom === 'all' || event.roomId === selectedRoom
-      
-      return overlaps && roomMatch
+      return overlaps
     })
 
-    const roomName = selectedRoom === 'all' ? 'Alle Räume' : 
-      rooms.find(r => r.id === selectedRoom)?.name || selectedRoom
+    const roomName = 'Alle Räume'
 
     const printContent = printMode === 'calendar' 
       ? generateCalendarPrintContent(startDate, endDate, monthEvents, roomName)
@@ -590,33 +585,17 @@ const PrintModal: React.FC<PrintModalProps> = ({ isOpen, onClose, events, rooms 
             />
           </div>
           
-          <div className="form-group">
-            <label>Raum:</label>
-            <select
-              value={selectedRoom}
-              onChange={(e) => setSelectedRoom(e.target.value)}
-            >
-              <option value="all">Alle Räume</option>
-              {rooms.map(room => (
-                <option key={room.id} value={room.id}>
-                  {room.name}
-                </option>
-              ))}
-            </select>
-          </div>
           
-          <div className="print-preview">
-            <h3>Vorschau:</h3>
-            <p>
-              <strong>Druckmodus:</strong> {printMode === 'calendar' ? 'Kalender-Ansicht (7 Spalten)' : 'Tabellen-Ansicht (Räume getrennt)'}
-            </p>
-            <p>
-              <strong>Zeitraum:</strong> {format(startDate, 'dd.MM.yyyy', { locale: de })} - {format(endDate, 'dd.MM.yyyy', { locale: de })}
-            </p>
-            <p>
-              <strong>Raum:</strong> {selectedRoom === 'all' ? 'Alle Räume' : rooms.find(r => r.id === selectedRoom)?.name || selectedRoom}
-            </p>
-          </div>
+          
+                           <div className="print-preview">
+                   <h3>Vorschau:</h3>
+                   <p>
+                     <strong>Druckmodus:</strong> {printMode === 'calendar' ? 'Kalender-Ansicht (7 Spalten)' : 'Tabellen-Ansicht (Räume getrennt)'}
+                   </p>
+                   <p>
+                     <strong>Zeitraum:</strong> {format(startDate, 'dd.MM.yyyy', { locale: de })} - {format(endDate, 'dd.MM.yyyy', { locale: de })}
+                   </p>
+                 </div>
         </div>
         
         <div className="print-modal-footer">

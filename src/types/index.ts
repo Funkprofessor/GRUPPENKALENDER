@@ -105,6 +105,7 @@ export interface EventModalProps {
   onSave: (eventData: CreateEventData | Event) => void
   onSaveMultiple?: (eventsData: CreateEventData[]) => void
   onDelete?: (action?: RepeatAction) => void
+  onCopy?: (originalEvent: Event) => void
   onClose: () => void
   // Vorausgewählte Werte für neue Events
   preselectedDate?: string

@@ -13,6 +13,7 @@ const EventModal: React.FC<EventModalProps> = ({
   onSave, 
   onSaveMultiple, 
   onDelete, 
+  onCopy, 
   onClose,
   preselectedDate,
   preselectedRoomId
@@ -495,7 +496,10 @@ const EventModal: React.FC<EventModalProps> = ({
    * Speichert das Event (wird von handleSave und handleCollisionConfirm aufgerufen)
    */
   const saveEvent = async (updatedFormData: CreateEventData) => {
-    if (event) {
+    // Prüfe ob es sich um ein neues Event handelt (keine ID oder leere ID)
+    const isNewEvent = !event || !event.id || event.id === ''
+    
+    if (!isNewEvent) {
       // Update bestehendes Event
       // Wenn es ein wiederholendes Event ist, zeige Abfrage
       if (isRepeatingEvent(event)) {
@@ -548,6 +552,16 @@ const EventModal: React.FC<EventModalProps> = ({
         onDelete?.()
       }
     }
+  }
+
+  /**
+   * Behandelt das Kopieren des Events
+   */
+  const handleCopy = () => {
+    if (!event || !onCopy) return
+    
+    // Rufe die onCopy-Funktion auf, die das Modal als neues Event öffnet
+    onCopy(event)
   }
 
   /**
@@ -681,7 +695,19 @@ const EventModal: React.FC<EventModalProps> = ({
       <div className="modal-content" onClick={e => e.stopPropagation()} onKeyDown={handleKeyDown}>
         {/* Modal Header */}
         <div className="modal-header">
-          <h2>{event ? 'Termin bearbeiten' : 'Neuer Termin'}</h2>
+          <h2>
+            {event && event.id === '' ? 'Termin kopieren' : event ? 'Termin bearbeiten' : 'Neuer Termin'}
+          </h2>
+          {event && event.id === '' && (
+            <div style={{ 
+              fontSize: '0.9em', 
+              color: '#666', 
+              marginTop: '5px',
+              fontStyle: 'italic'
+            }}>
+              📋 Kopie eines bestehenden Termins - Sie können alle Details anpassen
+            </div>
+          )}
           <button className="close-btn" onClick={onClose} title="Schließen">
             ×
           </button>
@@ -956,6 +982,16 @@ const EventModal: React.FC<EventModalProps> = ({
                 Löschen
               </button>
             )}
+            {event && (
+              <button 
+                className="btn btn-secondary" 
+                onClick={handleCopy}
+                type="button"
+                style={{ marginLeft: '10px' }}
+              >
+                📋 Kopieren
+              </button>
+            )}
           </div>
           
           <div className="footer-right">
@@ -971,7 +1007,7 @@ const EventModal: React.FC<EventModalProps> = ({
               onClick={handleSave}
               type="button"
             >
-              {event ? 'Aktualisieren' : 'Erstellen'}
+              {event && event.id === '' ? 'Kopie speichern' : event ? 'Aktualisieren' : 'Erstellen'}
             </button>
           </div>
         </div>
