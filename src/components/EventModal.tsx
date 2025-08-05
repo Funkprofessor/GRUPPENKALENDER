@@ -44,12 +44,16 @@ const EventModal: React.FC<EventModalProps> = ({
   // Zustand für Wiederholungsabfrage
   const [showRepeatDialog, setShowRepeatDialog] = useState(false)
   const [pendingAction, setPendingAction] = useState<'delete' | 'save' | null>(null)
+  
+  // Zustand für Kollisionswarnung
+  const [showCollisionWarning, setShowCollisionWarning] = useState(false)
+  const [collisionEvents, setCollisionEvents] = useState<Event[]>([])
 
   // Verfügbare Farben
   const availableColors: EventColor[] = [
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
     '#FFB347', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471',
-    '#82E0AA', '#F1948A', '#85C1E9', '#FAD7A0'
+    '#82E0AA', '#F1948A', '#FAD7A0'
   ]
 
   // Verfügbare Wiederholungstypen
@@ -212,6 +216,99 @@ const EventModal: React.FC<EventModalProps> = ({
   }
 
   /**
+   * Prüft auf Terminkollisionen
+   */
+  const checkCollisions = async (): Promise<Event[]> => {
+    try {
+      // Debug: Zeige die API-URL
+      const apiUrl = `/api/events?roomId=${formData.roomId}&startDate=${formData.startDate}&endDate=${formData.endDate}`
+      console.log('Kollisionsprüfung - API URL:', apiUrl)
+      console.log('Kollisionsprüfung - FormData:', formData)
+      
+      // Teste auch eine einfachere Abfrage ohne Datumsfilter
+      const simpleApiUrl = `/api/events?roomId=${formData.roomId}`
+      console.log('Kollisionsprüfung - Simple API URL (nur Raum):', simpleApiUrl)
+      
+      const simpleResponse = await fetch(simpleApiUrl)
+      const simpleResult = await simpleResponse.json()
+      console.log('Kollisionsprüfung - Simple API Response (alle Events im Raum):', simpleResult)
+      
+      // Hole alle Events für den ausgewählten Raum im Zeitraum
+      const response = await fetch(apiUrl)
+      console.log('Kollisionsprüfung - Response Status:', response.status)
+      
+      const result = await response.json()
+      console.log('Kollisionsprüfung - Raw API Response:', result)
+      
+      // Extrahiere Events aus der API-Antwort
+      const events: Event[] = result.success ? result.data : []
+      
+      console.log('Kollisionsprüfung - Gefundene Events:', events)
+      
+      // Filtere das aktuelle Event heraus (falls es ein Update ist)
+      const otherEvents = events.filter(e => !event || e.id !== event.id)
+      console.log('Kollisionsprüfung - Events nach Filterung:', otherEvents)
+      
+      const collisions: Event[] = []
+      
+      for (const existingEvent of otherEvents) {
+        // Prüfe ob sich die Events überschneiden
+        if (isOverlapping(formData, existingEvent)) {
+          collisions.push(existingEvent)
+          console.log('Kollision gefunden:', existingEvent)
+        }
+      }
+      
+      console.log('Kollisionsprüfung - Gefundene Kollisionen:', collisions)
+      return collisions
+    } catch (error) {
+      console.error('Fehler beim Prüfen der Kollisionen:', error)
+      return []
+    }
+  }
+
+  /**
+   * Prüft ob zwei Events sich überschneiden
+   */
+  const isOverlapping = (event1: CreateEventData, event2: Event): boolean => {
+    console.log('isOverlapping - Prüfe:', {
+      event1: { startDate: event1.startDate, endDate: event1.endDate, startTime: event1.startTime, endTime: event1.endTime },
+      event2: { startDate: event2.startDate, endDate: event2.endDate, startTime: event2.startTime, endTime: event2.endTime }
+    })
+    
+    // Prüfe Datumsüberschneidung
+    if (event1.endDate < event2.startDate || event2.endDate < event1.startDate) {
+      console.log('isOverlapping - Keine Datumsüberschneidung')
+      return false
+    }
+    
+    // Wenn beide Events am gleichen Tag sind, prüfe Zeitüberschneidung
+    if (event1.startDate === event2.startDate && event1.endDate === event2.endDate) {
+      // Gleicher Tag - prüfe Zeitüberschneidung
+      const overlaps = event1.endTime > event2.startTime && event2.endTime > event1.startTime
+      console.log('isOverlapping - Gleicher Tag, Zeitüberschneidung:', overlaps)
+      return overlaps
+    }
+    
+    // Wenn ein Event mehrere Tage überspannt und das andere an einem Tag ist
+    if (event1.startDate !== event1.endDate || event2.startDate !== event2.endDate) {
+      // Prüfe ob sich die Zeiträume überschneiden
+      const event1Start = new Date(`${event1.startDate}T${event1.startTime}`)
+      const event1End = new Date(`${event1.endDate}T${event1.endTime}`)
+      const event2Start = new Date(`${event2.startDate}T${event2.startTime}`)
+      const event2End = new Date(`${event2.endDate}T${event2.endTime}`)
+      
+      const overlaps = event1End > event2Start && event2End > event1Start
+      console.log('isOverlapping - Mehrere Tage, Überschneidung:', overlaps)
+      return overlaps
+    }
+    
+    // Fallback: Wenn Datumsüberschneidung vorhanden ist, dann Überschneidung
+    console.log('isOverlapping - Fallback: Überschneidung vorhanden')
+    return true
+  }
+
+  /**
    * Validiert das Formular
    */
   const validateForm = (): boolean => {
@@ -349,7 +446,7 @@ const EventModal: React.FC<EventModalProps> = ({
   /**
    * Behandelt das Speichern des Events
    */
-  const handleSave = () => {
+  const handleSave = async () => {
     // Erstelle aktualisierte Formulardaten mit korrekten Zeitwerten
     let updatedFormData = { ...formData }
     
@@ -378,6 +475,26 @@ const EventModal: React.FC<EventModalProps> = ({
     // Validiere mit den aktualisierten Daten
     if (!validateForm()) return
     
+    // Prüfe auf Kollisionen
+    console.log('handleSave - Starte Kollisionsprüfung...')
+    const collisions = await checkCollisions()
+    console.log('handleSave - Kollisionsprüfung abgeschlossen, gefunden:', collisions.length)
+    
+    if (collisions.length > 0) {
+      console.log('handleSave - Zeige Kollisionswarnung')
+      setCollisionEvents(collisions)
+      setShowCollisionWarning(true)
+      return // Zeige Warnung, aber erlaube später das Speichern
+    }
+    
+    // Keine Kollisionen - speichere direkt
+    await saveEvent(updatedFormData)
+  }
+
+  /**
+   * Speichert das Event (wird von handleSave und handleCollisionConfirm aufgerufen)
+   */
+  const saveEvent = async (updatedFormData: CreateEventData) => {
     if (event) {
       // Update bestehendes Event
       // Wenn es ein wiederholendes Event ist, zeige Abfrage
@@ -442,6 +559,43 @@ const EventModal: React.FC<EventModalProps> = ({
     if (onDelete) {
       onDelete(action)
     }
+  }
+
+  /**
+   * Behandelt die Bestätigung der Kollisionswarnung
+   */
+  const handleCollisionConfirm = async () => {
+    setShowCollisionWarning(false)
+    
+    // Erstelle aktualisierte Formulardaten mit korrekten Zeitwerten
+    let updatedFormData = { ...formData }
+    
+    if (!isAllDay) {
+      const newStartTime = `${startHour.padStart(2, '0')}:${startMinute.padStart(2, '0')}`
+      const newEndTime = `${endHour.padStart(2, '0')}:${endMinute.padStart(2, '0')}`
+      updatedFormData.startTime = newStartTime
+      updatedFormData.endTime = newEndTime
+    } else {
+      updatedFormData.startTime = '00:00'
+      updatedFormData.endTime = '23:59'
+    }
+
+    // Füge Wochentag-Felder hinzu wenn nötig
+    if (formData.repeatType === 'monthly_weekday') {
+      updatedFormData.repeatWeekday = repeatWeekday
+      updatedFormData.repeatWeekOfMonth = repeatWeekOfMonth
+    }
+    
+    // Speichere trotz Kollision
+    await saveEvent(updatedFormData)
+  }
+
+  /**
+   * Behandelt das Abbrechen der Kollisionswarnung
+   */
+  const handleCollisionCancel = () => {
+    setShowCollisionWarning(false)
+    setCollisionEvents([])
   }
 
   /**
@@ -875,6 +1029,57 @@ const EventModal: React.FC<EventModalProps> = ({
                 }}
               >
                 Abbrechen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Kollisionswarnung Dialog */}
+      {showCollisionWarning && (
+        <div className="modal-overlay" style={{ zIndex: 1002 }}>
+          <div className="modal-content collision-warning" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>⚠️ Terminkollision erkannt</h3>
+            </div>
+            
+            <div className="modal-body">
+              <p>
+                Der gewählte Zeitraum überschneidet sich mit folgenden Terminen:
+              </p>
+              
+              <div className="collision-list">
+                {collisionEvents.map(collisionEvent => (
+                  <div key={collisionEvent.id} className="collision-item">
+                    <div className="collision-title">{collisionEvent.title}</div>
+                    <div className="collision-details">
+                      {collisionEvent.startDate === collisionEvent.endDate 
+                        ? `${collisionEvent.startDate} ${collisionEvent.startTime} - ${collisionEvent.endTime}`
+                        : `${collisionEvent.startDate} - ${collisionEvent.endDate}`
+                      }
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <p className="collision-note">
+                <strong>Hinweis:</strong> Sie können den Termin trotzdem speichern. 
+                Doppelbelegungen sind erlaubt.
+              </p>
+            </div>
+            
+            <div className="modal-footer">
+              <button 
+                className="btn btn-secondary" 
+                onClick={handleCollisionCancel}
+              >
+                Abbrechen
+              </button>
+              <button 
+                className="btn btn-warning" 
+                onClick={handleCollisionConfirm}
+              >
+                Trotzdem speichern
               </button>
             </div>
           </div>

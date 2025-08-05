@@ -202,6 +202,9 @@ function validateEvent(eventData) {
  */
 app.get('/api/events', (req, res) => {
   const { startDate, endDate, roomId } = req.query
+  
+  console.log('API /events - Query params:', { startDate, endDate, roomId })
+  
   let query = 'SELECT * FROM events'
   const params = []
 
@@ -210,25 +213,48 @@ app.get('/api/events', (req, res) => {
     query += ' WHERE'
     const conditions = []
 
-    if (startDate) {
-      conditions.push('startDate >= ?')
-      params.push(startDate)
-    }
+    if (startDate && endDate) {
+      // Für Kollisionsprüfung: Finde Events die sich mit dem Zeitraum überschneiden
+      // Ein Event überschneidet sich wenn:
+      // - Es startet vor dem Ende des Zeitraums UND endet nach dem Start des Zeitraums
+      // ODER: Es startet innerhalb des Zeitraums
+      // ODER: Es endet innerhalb des Zeitraums
+      const collisionCondition = '(startDate <= ? AND endDate >= ?) OR (startDate >= ? AND startDate <= ?) OR (endDate >= ? AND endDate <= ?)'
+      params.push(endDate, startDate, startDate, endDate, startDate, endDate)
+      console.log('API /events - Kollisionsprüfung: Erweiterte Logik für', startDate, 'bis', endDate)
+      
+      if (roomId) {
+        // Raum-Bedingung mit Kollisionsbedingung kombinieren
+        conditions.push(`(${collisionCondition}) AND roomId = ?`)
+        params.push(roomId)
+      } else {
+        conditions.push(collisionCondition)
+      }
+    } else {
+      // Fallback für andere Abfragen
+      if (startDate) {
+        conditions.push('startDate >= ?')
+        params.push(startDate)
+      }
 
-    if (endDate) {
-      conditions.push('endDate <= ?')
-      params.push(endDate)
-    }
+      if (endDate) {
+        conditions.push('endDate <= ?')
+        params.push(endDate)
+      }
 
-    if (roomId) {
-      conditions.push('roomId = ?')
-      params.push(roomId)
+      if (roomId) {
+        conditions.push('roomId = ?')
+        params.push(roomId)
+      }
     }
 
     query += ' ' + conditions.join(' AND ')
   }
 
   query += ' ORDER BY startDate ASC, startTime ASC'
+  
+  console.log('API /events - Final query:', query)
+  console.log('API /events - Params:', params)
 
   db.all(query, params, (err, rows) => {
     if (err) {
@@ -238,6 +264,9 @@ app.get('/api/events', (req, res) => {
         error: 'Datenbankfehler beim Abrufen der Events'
       })
     }
+
+    console.log('API /events - Found rows:', rows.length)
+    console.log('API /events - Sample rows:', rows.slice(0, 3))
 
     res.json({
       success: true,

@@ -4,6 +4,7 @@ import { fetchEvents, createEvent, updateEvent, deleteEvent } from './api/events
 import Calendar from './components/Calendar'
 import EventModal from './components/EventModal'
 import EventsList from './components/EventsList'
+import PrintModal from './components/PrintModal'
 import './App.css'
 
 /**
@@ -20,6 +21,7 @@ function App() {
   const [preselectedDate, setPreselectedDate] = useState<string | undefined>(undefined)
   const [preselectedRoomId, setPreselectedRoomId] = useState<string | undefined>(undefined)
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false)
 
   // Verfügbare Räume für den Kalender
   const rooms: Room[] = [
@@ -239,31 +241,40 @@ function App() {
       {/* Header mit Titel, View-Toggle und Add-Button */}
       <header className="app-header">
         <h1>Kulturforum Ansbach - Kalender</h1>
-        <div className="header-controls">
-          <div className="view-toggle">
-            <button 
-              className={`view-btn ${viewMode === 'calendar' ? 'active' : ''}`}
-              onClick={() => setViewMode('calendar')}
-              title="Kalenderansicht"
-            >
-              📅 Kalender
-            </button>
-            <button 
-              className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
-              onClick={() => setViewMode('list')}
-              title="Listenansicht"
-            >
-              📋 Liste
-            </button>
+                  <div className="header-controls">
+            <div className="view-toggle">
+              <button 
+                className={`view-btn ${viewMode === 'calendar' ? 'active' : ''}`}
+                onClick={() => setViewMode('calendar')}
+                title="Kalenderansicht"
+              >
+                📅 Kalender
+              </button>
+              <button 
+                className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
+                onClick={() => setViewMode('list')}
+                title="Listenansicht"
+              >
+                📋 Liste
+              </button>
+            </div>
+            <div className="action-buttons">
+              <button 
+                className="print-btn"
+                onClick={() => setIsPrintModalOpen(true)}
+                title="Drucken"
+              >
+                🖨️ Drucken
+              </button>
+              <button 
+                className="add-event-btn"
+                onClick={handleAddEvent}
+                title="Neuen Termin hinzufügen"
+              >
+                + Neuer Termin
+              </button>
+            </div>
           </div>
-          <button 
-            className="add-event-btn"
-            onClick={handleAddEvent}
-            title="Neuen Termin hinzufügen"
-          >
-            + Neuer Termin
-          </button>
-        </div>
       </header>
 
       {/* Fehlermeldung anzeigen */}
@@ -319,6 +330,14 @@ function App() {
           preselectedRoomId={preselectedRoomId}
         />
       )}
+
+      {/* Modal für Drucken */}
+      <PrintModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        events={events}
+        rooms={rooms}
+      />
 
       {/* Footer */}
       <footer className="app-footer">

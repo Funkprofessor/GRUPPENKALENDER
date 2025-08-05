@@ -394,4 +394,60 @@
     width: 30px;
     height: 30px;
   }
+}
+
+/* Kollisionswarnung Dialog */
+.collision-warning {
+  max-width: 600px;
+}
+
+.collision-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background: #f8f9fa;
+  margin: 1rem 0;
+}
+
+.collision-item {
+  padding: 0.75rem;
+  border-bottom: 1px solid #dee2e6;
+  background: white;
+}
+
+.collision-item:last-child {
+  border-bottom: none;
+}
+
+.collision-title {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.25rem;
+}
+
+.collision-details {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.collision-note {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin: 1rem 0 0 0;
+  color: #856404;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #212529;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800;
+  border-color: #d39e00;
+  color: #212529;
 } 

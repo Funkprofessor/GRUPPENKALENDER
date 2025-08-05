@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns'
+import React, { useState, useEffect, useRef } from 'react'
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay } from 'date-fns'
 import { de } from 'date-fns/locale'
 import { Event, Room, CalendarProps } from '../types'
 import { getHolidaysForDate } from '../utils/holidays'
@@ -12,6 +12,8 @@ import './Calendar.css'
 const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddEvent, onAddEventWithPreselection }) => {
   // Aktueller Monat für die Anzeige
   const [currentMonth, setCurrentMonth] = useState(new Date()) // Startet mit dem aktuellen Monat
+  const todayRowRef = useRef<HTMLTableRowElement>(null)
+  const tableContainerRef = useRef<HTMLDivElement>(null)
 
   /**
    * Generiert alle Tage des aktuellen Monats
@@ -82,6 +84,75 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
   const goToCurrentMonth = () => {
     setCurrentMonth(new Date())
   }
+
+  /**
+   * Scrollt zum aktuellen Tag
+   */
+  const scrollToToday = () => {
+    if (todayRowRef.current && tableContainerRef.current) {
+      // Berechne die Position der Zeile relativ zum Container
+      const containerRect = tableContainerRef.current.getBoundingClientRect()
+      const rowRect = todayRowRef.current.getBoundingClientRect()
+      const offset = rowRect.top - containerRect.top - 20 // 20px Abstand von oben
+      
+      // Scrolle zur Position
+      tableContainerRef.current.scrollTop += offset
+    }
+  }
+
+  /**
+   * Scrollt zum Anfang des Monats
+   */
+  const scrollToMonthStart = () => {
+    if (tableContainerRef.current) {
+      // Scrolle zum Anfang des Containers
+      tableContainerRef.current.scrollTop = 0
+    }
+  }
+
+  /**
+   * Prüft ob ein Tag am Wochenende ist (Samstag = 6, Sonntag = 0)
+   */
+  const isWeekend = (date: Date) => {
+    const dayOfWeek = getDay(date)
+    return dayOfWeek === 0 || dayOfWeek === 6
+  }
+
+  /**
+   * Prüft ob ein Tag Sonntag ist
+   */
+  const isSunday = (date: Date) => {
+    const dayOfWeek = getDay(date)
+    return dayOfWeek === 0
+  }
+
+  /**
+   * Prüft ob ein Tag heute ist
+   */
+  const isToday = (date: Date) => {
+    return isSameDay(date, new Date())
+  }
+
+  // Scroll zum aktuellen Tag beim ersten Laden oder zum Monatsanfang beim Monatswechsel
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Prüfe ob der aktuelle Monat angezeigt wird
+      const today = new Date()
+      const isCurrentMonth = today.getMonth() === currentMonth.getMonth() && 
+                           today.getFullYear() === currentMonth.getFullYear()
+      
+      if (isCurrentMonth) {
+        // Wenn aktueller Monat: Scroll zum heutigen Tag
+        scrollToToday()
+      } else {
+        // Wenn anderer Monat: Scroll zum Anfang
+        scrollToMonthStart()
+      }
+    }, 300) // Längere Verzögerung für vollständiges DOM-Rendering
+    return () => clearTimeout(timer)
+  }, [currentMonth])
+
+
 
   /**
    * Formatiert die Zeit für die Anzeige
@@ -162,8 +233,17 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
         onClick={() => onEventClick(event)}
         title={tooltipText}
       >
-        {isStart && !isAllDay && <div className="event-time">{startTime}</div>}
-        {isStart && <div className="event-title">{event.title}</div>}
+        {isStart && !isAllDay && (
+          <div className="event-time">
+            {startTime} - {endTime}
+          </div>
+        )}
+        {isStart && isAllDay && (
+          <div className="event-time">
+            <span className="all-day-icon">📅</span>
+          </div>
+        )}
+        <div className="event-title">{event.title}</div>
         {!isStart && !isEnd && <div className="event-continuation-indicator">●</div>}
       </div>
     )
@@ -176,10 +256,28 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
     const dateKey = format(day, 'yyyy-MM-dd')
     const dayEvents = eventsByDateAndRoom[dateKey]?.[room.id] || []
     
+    // Sortiere Events chronologisch nach Startzeit
+    const sortedEvents = [...dayEvents].sort((a, b) => {
+      // Ganztägige Events kommen zuerst
+      const aIsAllDay = isAllDayEvent(a)
+      const bIsAllDay = isAllDayEvent(b)
+      
+      if (aIsAllDay && !bIsAllDay) return -1
+      if (!aIsAllDay && bIsAllDay) return 1
+      
+      // Bei gleichem Typ (ganztägig oder nicht) nach Startzeit sortieren
+      if (aIsAllDay && bIsAllDay) {
+        return a.title.localeCompare(b.title) // Alphabetisch bei ganztägigen Events
+      }
+      
+      // Nach Startzeit sortieren
+      return a.startTime.localeCompare(b.startTime)
+    })
+    
     return (
       <td key={room.id} className="calendar-cell">
         <div className="cell-content">
-          {dayEvents.map(event => renderEvent(event, day))}
+          {sortedEvents.map(event => renderEvent(event, day))}
           <button
             className="add-event-in-cell"
             onClick={() => {
@@ -209,8 +307,20 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
     const dateFormatted = format(day, 'dd.MM.yyyy')
     const holidays = getHolidaysForDate(day)
     
+    // CSS-Klassen für Styling
+    const rowClasses = [
+      'calendar-row',
+      isWeekend(day) ? 'weekend-row' : '',
+      isSunday(day) ? 'sunday-row' : '',
+      isToday(day) ? 'today-row' : ''
+    ].filter(Boolean).join(' ')
+    
     return (
-      <tr key={dateKey} className="calendar-row">
+      <tr 
+        key={dateKey} 
+        className={rowClasses}
+        ref={isToday(day) ? todayRowRef : undefined}
+      >
         {/* Datum */}
         <td className="calendar-date-cell sticky-left">
           <div className="date-info">
@@ -279,7 +389,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
       </div>
 
       {/* Kalender-Tabelle */}
-      <div className="calendar-table-container">
+      <div className="calendar-table-container" ref={tableContainerRef}>
         <table className="calendar-table">
           <thead className="calendar-header sticky-top">
             <tr>

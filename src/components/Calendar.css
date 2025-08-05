@@ -63,6 +63,13 @@
   max-height: calc(100vh - 120px);
 }
 
+/* Leerraum am Ende der Tabelle für bessere Sichtbarkeit des letzten Tags */
+.calendar-table tbody::after {
+  content: '';
+  display: block;
+  height: 200px; /* Genügend Platz am Ende */
+}
+
 /* Kalender-Tabelle */
 .calendar-table {
   width: 100%;
@@ -151,6 +158,60 @@
 
 .calendar-row:hover {
   background-color: #f8f9fa;
+}
+
+/* Wochenende-Zeilen mit leicht grauem Hintergrund */
+.weekend-row {
+  background-color: #f8f9fa !important;
+}
+
+.weekend-row:hover {
+  background-color: #e9ecef !important;
+}
+
+/* Sonntagszeilen mit dunklerem Hintergrund */
+.sunday-row {
+  background-color: #e9ecef !important;
+}
+
+.sunday-row:hover {
+  background-color: #dee2e6 !important;
+}
+
+/* Wochenende-Zellen überschreiben die weiße Hintergrundfarbe */
+.weekend-row .calendar-cell,
+.weekend-row .calendar-date-cell,
+.weekend-row .calendar-day-cell {
+  background-color: #f8f9fa !important;
+}
+
+.weekend-row:hover .calendar-cell,
+.weekend-row:hover .calendar-date-cell,
+.weekend-row:hover .calendar-day-cell {
+  background-color: #e9ecef !important;
+}
+
+/* Sonntags-Zellen mit dunklerem Hintergrund */
+.sunday-row .calendar-cell,
+.sunday-row .calendar-date-cell,
+.sunday-row .calendar-day-cell {
+  background-color: #e9ecef !important;
+}
+
+.sunday-row:hover .calendar-cell,
+.sunday-row:hover .calendar-date-cell,
+.sunday-row:hover .calendar-day-cell {
+  background-color: #dee2e6 !important;
+}
+
+/* Aktueller Tag mit Rahmen */
+.today-row {
+  border: 2px solid #667eea;
+  background-color: #f0f4ff;
+}
+
+.today-row:hover {
+  background-color: #e6f0ff;
 }
 
 /* Kalender-Zellen */
@@ -309,6 +370,11 @@
   margin-bottom: 0.125rem;
 }
 
+.all-day-icon {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
 .event-title {
   font-weight: 500;
   line-height: 1.2;
@@ -381,23 +447,41 @@
     min-width: 100px;
   }
   
+  /* Schmalere Datum und Wochentag Spalten */
+  .header-date,
+  .calendar-date-cell {
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+  }
+  
+  .header-day,
+  .calendar-day-cell {
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
+  }
+  
   .calendar-cell {
     padding: 0.25rem;
     min-height: 60px;
   }
   
   .calendar-date-cell,
-  .calendar-day-cell,
-  .calendar-holiday-cell {
-    padding: 0.5rem 0.25rem;
+  .calendar-day-cell {
+    padding: 0.25rem 0.125rem;
   }
   
   .date-number {
-    font-size: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .date-month {
+    font-size: 0.6rem;
   }
   
   .day-name {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
   
   .holiday-item {
