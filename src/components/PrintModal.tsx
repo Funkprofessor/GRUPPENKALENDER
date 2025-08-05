@@ -270,20 +270,11 @@ const PrintModal: React.FC<PrintModalProps> = ({ isOpen, onClose, events, rooms 
               /* Print-spezifische Styles für bessere PDF-Konvertierung */
               .calendar-table .weekend {
                 background-color: #f9f9f9 !important;
-                border-left: 3px solid #ddd !important;
-                border-right: 3px solid #ddd !important;
               }
               
-              .calendar-table .saturday {
-                border-left: 3px solid #ddd !important;
-                border-right: 3px solid #ddd !important;
-              }
-              
-              .calendar-table .sunday {
-                background-color: #f0f0f0 !important;
-                border-left: 3px solid #bbb !important;
-                border-right: 3px solid #bbb !important;
-                border-bottom: 4px solid #999 !important;
+              .calendar-table .sunday .day-number {
+                color: #d32f2f !important;
+                font-weight: bold !important;
               }
               
               /* Dickere Rahmen für bessere Sichtbarkeit im PDF */
@@ -362,20 +353,11 @@ const PrintModal: React.FC<PrintModalProps> = ({ isOpen, onClose, events, rooms 
             
             .calendar-table .weekend {
               background-color: #f9f9f9;
-              border-left: 3px solid #ddd;
-              border-right: 3px solid #ddd;
             }
             
-            .calendar-table .sunday {
-              background-color: #f0f0f0;
-              border-left: 3px solid #bbb;
-              border-right: 3px solid #bbb;
-              border-bottom: 4px solid #999;
-            }
-            
-            .calendar-table .saturday {
-              border-left: 3px solid #ddd;
-              border-right: 3px solid #ddd;
+            .calendar-table .sunday .day-number {
+              color: #d32f2f;
+              font-weight: bold;
             }
             
             .calendar-table .today {
@@ -413,6 +395,10 @@ const PrintModal: React.FC<PrintModalProps> = ({ isOpen, onClose, events, rooms 
             
             .holiday-badge[data-type="school_holiday"] {
               background: #2ecc71;
+            }
+            
+            .holiday-badge[data-type="additional_day"] {
+              background: #f39c12;
             }
             
             .room-column {
@@ -494,10 +480,9 @@ const PrintModal: React.FC<PrintModalProps> = ({ isOpen, onClose, events, rooms 
                   <tr class="${isWeekend ? 'weekend' : ''} ${isSaturday ? 'saturday' : ''} ${isSunday ? 'sunday' : ''} ${isToday ? 'today' : ''}">
                     <td class="date-column">
                       <div class="day-number">${format(day, 'dd.MM.yyyy')}</div>
-                      ${isWeekend ? `<div style="font-size: 8px; color: #666; font-weight: bold;">${isSaturday ? 'SA' : 'SO'}</div>` : ''}
                     </td>
                     <td class="day-column">
-                      <div class="day-name">${weekdays[day.getDay() === 0 ? 6 : day.getDay() - 1]}</div>
+                      <div class="day-name" ${isSunday ? 'style="color: #d32f2f; font-weight: bold;"' : ''}>${weekdays[day.getDay() === 0 ? 6 : day.getDay() - 1]}</div>
                       ${holidays.length > 0 ? 
                         holidays.map((holiday, index) => `
                           <span class="holiday-badge" data-type="${holiday.type}">
@@ -517,7 +502,7 @@ const PrintModal: React.FC<PrintModalProps> = ({ isOpen, onClose, events, rooms 
                                 <div class="event-time">${event.startTime === '00:00' && event.endTime === '23:59' ? '' : `${event.startTime}${event.endTime !== '23:59' ? ` - ${event.endTime}` : ''}`}</div>
                               </div>
                             `).join('') : 
-                            '<div class="no-events">-</div>'
+                            ''
                           }
                         </td>
                       `

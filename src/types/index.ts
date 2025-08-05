@@ -85,7 +85,7 @@ export interface EventResponse extends ApiResponse<Event> {}
 export interface Holiday {
   date: string
   name: string
-  type: 'holiday' | 'school_holiday'
+  type: 'holiday' | 'school_holiday' | 'additional_day'
 }
 
 // Kalender-Navigation

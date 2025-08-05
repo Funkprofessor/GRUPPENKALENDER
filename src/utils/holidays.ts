@@ -66,9 +66,92 @@ const BAVARIAN_HOLIDAYS: Holiday[] = [
   { date: '2027-12-25', name: '1. Weihnachtstag', type: 'holiday' },
   { date: '2027-12-26', name: '2. Weihnachtstag', type: 'holiday' },
   { date: '2027-12-31', name: 'Silvester', type: 'holiday' },
+  
+  // 2028
+  { date: '2028-01-01', name: 'Neujahr', type: 'holiday' },
+  { date: '2028-01-06', name: 'Heilige Drei Könige', type: 'holiday' },
+  { date: '2028-04-14', name: 'Karfreitag', type: 'holiday' },
+  { date: '2028-04-16', name: 'Ostersonntag', type: 'holiday' },
+  { date: '2028-04-17', name: 'Ostermontag', type: 'holiday' },
+  { date: '2028-05-01', name: 'Tag der Arbeit', type: 'holiday' },
+  { date: '2028-05-25', name: 'Christi Himmelfahrt', type: 'holiday' },
+  { date: '2028-06-04', name: 'Pfingstsonntag', type: 'holiday' },
+  { date: '2028-06-05', name: 'Pfingstmontag', type: 'holiday' },
+  { date: '2028-06-15', name: 'Fronleichnam', type: 'holiday' },
+  { date: '2028-08-15', name: 'Mariä Himmelfahrt', type: 'holiday' },
+  { date: '2028-10-03', name: 'Tag der Deutschen Einheit', type: 'holiday' },
+  { date: '2028-10-31', name: 'Reformationstag', type: 'holiday' },
+  { date: '2028-11-01', name: 'Allerheiligen', type: 'holiday' },
+  { date: '2028-12-24', name: 'Heiligabend', type: 'holiday' },
+  { date: '2028-12-25', name: '1. Weihnachtstag', type: 'holiday' },
+  { date: '2028-12-26', name: '2. Weihnachtstag', type: 'holiday' },
+  { date: '2028-12-31', name: 'Silvester', type: 'holiday' },
 ]
 
-// Bayerische Schulferien 2025-2027 (ungefähre Daten)
+// Weitere wichtige Tage (keine gesetzlichen Feiertage)
+const ADDITIONAL_DAYS: Holiday[] = [
+  // 2025
+  { date: '2025-02-20', name: 'Weiberfastnacht', type: 'additional_day' },
+  { date: '2025-02-22', name: 'Fastnachtssamstag', type: 'additional_day' },
+  { date: '2025-02-23', name: 'Fastnachtssonntag', type: 'additional_day' },
+  { date: '2025-02-24', name: 'Rosenmontag', type: 'additional_day' },
+  { date: '2025-02-25', name: 'Faschingsdienstag', type: 'additional_day' },
+  { date: '2025-02-26', name: 'Aschermittwoch', type: 'additional_day' },
+  { date: '2025-05-11', name: 'Muttertag', type: 'additional_day' },
+  { date: '2025-06-15', name: 'Vatertag', type: 'additional_day' },
+  { date: '2025-09-14', name: 'Tag des offenen Denkmals', type: 'additional_day' },
+  { date: '2025-10-12', name: 'Erntedankfest', type: 'additional_day' },
+  { date: '2025-11-16', name: 'Volkstrauertag', type: 'additional_day' },
+  { date: '2025-11-23', name: 'Totensonntag', type: 'additional_day' },
+  { date: '2025-12-06', name: 'Nikolaus', type: 'additional_day' },
+  
+  // 2026
+  { date: '2026-02-12', name: 'Weiberfastnacht', type: 'additional_day' },
+  { date: '2026-02-14', name: 'Fastnachtssamstag', type: 'additional_day' },
+  { date: '2026-02-15', name: 'Fastnachtssonntag', type: 'additional_day' },
+  { date: '2026-02-16', name: 'Rosenmontag', type: 'additional_day' },
+  { date: '2026-02-17', name: 'Faschingsdienstag', type: 'additional_day' },
+  { date: '2026-02-18', name: 'Aschermittwoch', type: 'additional_day' },
+  { date: '2026-05-10', name: 'Muttertag', type: 'additional_day' },
+  { date: '2026-06-14', name: 'Vatertag', type: 'additional_day' },
+  { date: '2026-09-13', name: 'Tag des offenen Denkmals', type: 'additional_day' },
+  { date: '2026-10-04', name: 'Erntedankfest', type: 'additional_day' },
+  { date: '2026-11-15', name: 'Volkstrauertag', type: 'additional_day' },
+  { date: '2026-11-22', name: 'Totensonntag', type: 'additional_day' },
+  { date: '2026-12-06', name: 'Nikolaus', type: 'additional_day' },
+  
+  // 2027
+  { date: '2027-02-04', name: 'Weiberfastnacht', type: 'additional_day' },
+  { date: '2027-02-06', name: 'Fastnachtssamstag', type: 'additional_day' },
+  { date: '2027-02-07', name: 'Fastnachtssonntag', type: 'additional_day' },
+  { date: '2027-02-08', name: 'Rosenmontag', type: 'additional_day' },
+  { date: '2027-02-09', name: 'Faschingsdienstag', type: 'additional_day' },
+  { date: '2027-02-10', name: 'Aschermittwoch', type: 'additional_day' },
+  { date: '2027-05-09', name: 'Muttertag', type: 'additional_day' },
+  { date: '2027-06-13', name: 'Vatertag', type: 'additional_day' },
+  { date: '2027-09-12', name: 'Tag des offenen Denkmals', type: 'additional_day' },
+  { date: '2027-10-03', name: 'Erntedankfest', type: 'additional_day' },
+  { date: '2027-11-14', name: 'Volkstrauertag', type: 'additional_day' },
+  { date: '2027-11-21', name: 'Totensonntag', type: 'additional_day' },
+  { date: '2027-12-06', name: 'Nikolaus', type: 'additional_day' },
+  
+  // 2028
+  { date: '2028-02-24', name: 'Weiberfastnacht', type: 'additional_day' },
+  { date: '2028-02-26', name: 'Fastnachtssamstag', type: 'additional_day' },
+  { date: '2028-02-27', name: 'Fastnachtssonntag', type: 'additional_day' },
+  { date: '2028-02-28', name: 'Rosenmontag', type: 'additional_day' },
+  { date: '2028-02-29', name: 'Faschingsdienstag', type: 'additional_day' },
+  { date: '2028-03-01', name: 'Aschermittwoch', type: 'additional_day' },
+  { date: '2028-05-14', name: 'Muttertag', type: 'additional_day' },
+  { date: '2028-06-18', name: 'Vatertag', type: 'additional_day' },
+  { date: '2028-09-10', name: 'Tag des offenen Denkmals', type: 'additional_day' },
+  { date: '2028-10-01', name: 'Erntedankfest', type: 'additional_day' },
+  { date: '2028-11-19', name: 'Volkstrauertag', type: 'additional_day' },
+  { date: '2028-11-26', name: 'Totensonntag', type: 'additional_day' },
+  { date: '2028-12-06', name: 'Nikolaus', type: 'additional_day' },
+]
+
+// Bayerische Schulferien 2025-2028 (ungefähre Daten)
 const BAVARIAN_SCHOOL_HOLIDAYS: Holiday[] = [
   // Winterferien 2025 (15. Februar - 23. Februar)
   { date: '2025-02-15', name: 'Winterferien', type: 'school_holiday' },
@@ -153,11 +236,7 @@ const BAVARIAN_SCHOOL_HOLIDAYS: Holiday[] = [
   { date: '2025-09-06', name: 'Sommerferien', type: 'school_holiday' },
   { date: '2025-09-07', name: 'Sommerferien', type: 'school_holiday' },
   { date: '2025-09-08', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2025-09-09', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2025-09-10', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2025-09-11', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2025-09-12', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2025-09-13', name: 'Sommerferien', type: 'school_holiday' },
+
   
   // Herbstferien 2025 (25. Oktober - 2. November)
   { date: '2025-10-25', name: 'Herbstferien', type: 'school_holiday' },
@@ -231,9 +310,7 @@ const BAVARIAN_SCHOOL_HOLIDAYS: Holiday[] = [
   { date: '2026-05-30', name: 'Pfingstferien', type: 'school_holiday' },
   { date: '2026-05-31', name: 'Pfingstferien', type: 'school_holiday' },
   
-  // 2026 - Sommerferien
-  { date: '2026-07-27', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-07-28', name: 'Sommerferien', type: 'school_holiday' },
+  // 2026 - Sommerferien (29. Juli - 9. September)
   { date: '2026-07-29', name: 'Sommerferien', type: 'school_holiday' },
   { date: '2026-07-30', name: 'Sommerferien', type: 'school_holiday' },
   { date: '2026-07-31', name: 'Sommerferien', type: 'school_holiday' },
@@ -277,27 +354,6 @@ const BAVARIAN_SCHOOL_HOLIDAYS: Holiday[] = [
   { date: '2026-09-07', name: 'Sommerferien', type: 'school_holiday' },
   { date: '2026-09-08', name: 'Sommerferien', type: 'school_holiday' },
   { date: '2026-09-09', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-10', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-11', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-12', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-13', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-14', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-15', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-16', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-17', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-18', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-19', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-20', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-21', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-22', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-23', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-24', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-25', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-26', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-27', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-28', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-29', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2026-09-30', name: 'Sommerferien', type: 'school_holiday' },
   
   // 2026 - Herbstferien (24. Oktober - 1. November)
   { date: '2026-10-24', name: 'Herbstferien', type: 'school_holiday' },
@@ -331,18 +387,17 @@ const BAVARIAN_SCHOOL_HOLIDAYS: Holiday[] = [
   { date: '2027-01-05', name: 'Weihnachtsferien', type: 'school_holiday' },
   { date: '2027-01-06', name: 'Weihnachtsferien', type: 'school_holiday' },
   
-  // 2027 - Winterferien (13. Februar - 21. Februar)
-  { date: '2027-02-13', name: 'Winterferien', type: 'school_holiday' },
-  { date: '2027-02-14', name: 'Winterferien', type: 'school_holiday' },
-  { date: '2027-02-15', name: 'Winterferien', type: 'school_holiday' },
-  { date: '2027-02-16', name: 'Winterferien', type: 'school_holiday' },
-  { date: '2027-02-17', name: 'Winterferien', type: 'school_holiday' },
-  { date: '2027-02-18', name: 'Winterferien', type: 'school_holiday' },
-  { date: '2027-02-19', name: 'Winterferien', type: 'school_holiday' },
-  { date: '2027-02-20', name: 'Winterferien', type: 'school_holiday' },
-  { date: '2027-02-21', name: 'Winterferien', type: 'school_holiday' },
+  // 2027 - Winterferien (8. Februar - 12. Februar)
+  { date: '2027-02-08', name: 'Winterferien', type: 'school_holiday' },
+  { date: '2027-02-09', name: 'Winterferien', type: 'school_holiday' },
+  { date: '2027-02-10', name: 'Winterferien', type: 'school_holiday' },
+  { date: '2027-02-11', name: 'Winterferien', type: 'school_holiday' },
+  { date: '2027-02-12', name: 'Winterferien', type: 'school_holiday' },
   
-  // 2027 - Osterferien (25. März - 9. April)
+  // 2027 - Osterferien (22. März - 2. April)
+  { date: '2027-03-22', name: 'Osterferien', type: 'school_holiday' },
+  { date: '2027-03-23', name: 'Osterferien', type: 'school_holiday' },
+  { date: '2027-03-24', name: 'Osterferien', type: 'school_holiday' },
   { date: '2027-03-25', name: 'Osterferien', type: 'school_holiday' },
   { date: '2027-03-26', name: 'Osterferien', type: 'school_holiday' },
   { date: '2027-03-27', name: 'Osterferien', type: 'school_holiday' },
@@ -352,33 +407,15 @@ const BAVARIAN_SCHOOL_HOLIDAYS: Holiday[] = [
   { date: '2027-03-31', name: 'Osterferien', type: 'school_holiday' },
   { date: '2027-04-01', name: 'Osterferien', type: 'school_holiday' },
   { date: '2027-04-02', name: 'Osterferien', type: 'school_holiday' },
-  { date: '2027-04-03', name: 'Osterferien', type: 'school_holiday' },
-  { date: '2027-04-04', name: 'Osterferien', type: 'school_holiday' },
-  { date: '2027-04-05', name: 'Osterferien', type: 'school_holiday' },
-  { date: '2027-04-06', name: 'Osterferien', type: 'school_holiday' },
-  { date: '2027-04-07', name: 'Osterferien', type: 'school_holiday' },
-  { date: '2027-04-08', name: 'Osterferien', type: 'school_holiday' },
-  { date: '2027-04-09', name: 'Osterferien', type: 'school_holiday' },
   
-  // 2027 - Pfingstferien (15. Mai - 23. Mai)
-  { date: '2027-05-15', name: 'Pfingstferien', type: 'school_holiday' },
-  { date: '2027-05-16', name: 'Pfingstferien', type: 'school_holiday' },
-  { date: '2027-05-17', name: 'Pfingstferien', type: 'school_holiday' },
+  // 2027 - Pfingstferien (18. Mai einzeln, 29. Mai - 1. Juni)
   { date: '2027-05-18', name: 'Pfingstferien', type: 'school_holiday' },
-  { date: '2027-05-19', name: 'Pfingstferien', type: 'school_holiday' },
-  { date: '2027-05-20', name: 'Pfingstferien', type: 'school_holiday' },
-  { date: '2027-05-21', name: 'Pfingstferien', type: 'school_holiday' },
-  { date: '2027-05-22', name: 'Pfingstferien', type: 'school_holiday' },
-  { date: '2027-05-23', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2027-05-29', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2027-05-30', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2027-05-31', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2027-06-01', name: 'Pfingstferien', type: 'school_holiday' },
   
-  // 2027 - Sommerferien
-  { date: '2027-07-26', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-07-27', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-07-28', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-07-29', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-07-30', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-07-31', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-08-01', name: 'Sommerferien', type: 'school_holiday' },
+  // 2027 - Sommerferien (2. August - 13. September)
   { date: '2027-08-02', name: 'Sommerferien', type: 'school_holiday' },
   { date: '2027-08-03', name: 'Sommerferien', type: 'school_holiday' },
   { date: '2027-08-04', name: 'Sommerferien', type: 'school_holiday' },
@@ -422,42 +459,17 @@ const BAVARIAN_SCHOOL_HOLIDAYS: Holiday[] = [
   { date: '2027-09-11', name: 'Sommerferien', type: 'school_holiday' },
   { date: '2027-09-12', name: 'Sommerferien', type: 'school_holiday' },
   { date: '2027-09-13', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-14', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-15', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-16', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-17', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-18', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-19', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-20', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-21', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-22', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-23', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-24', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-25', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-26', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-27', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-28', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-29', name: 'Sommerferien', type: 'school_holiday' },
-  { date: '2027-09-30', name: 'Sommerferien', type: 'school_holiday' },
   
-  // 2027 - Herbstferien (23. Oktober - 31. Oktober)
-  { date: '2027-10-23', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2027-10-24', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2027-10-25', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2027-10-26', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2027-10-27', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2027-10-28', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2027-10-29', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2027-10-30', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2027-10-31', name: 'Herbstferien', type: 'school_holiday' },
+  // 2027 - Herbstferien (2. November - 5. November und 17. November - 19. November)
+  { date: '2027-11-02', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2027-11-03', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2027-11-04', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2027-11-05', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2027-11-17', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2027-11-18', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2027-11-19', name: 'Herbstferien', type: 'school_holiday' },
   
-  // 2027 - Weihnachtsferien (18. Dezember - 7. Januar 2028)
-  { date: '2027-12-18', name: 'Weihnachtsferien', type: 'school_holiday' },
-  { date: '2027-12-19', name: 'Weihnachtsferien', type: 'school_holiday' },
-  { date: '2027-12-20', name: 'Weihnachtsferien', type: 'school_holiday' },
-  { date: '2027-12-21', name: 'Weihnachtsferien', type: 'school_holiday' },
-  { date: '2027-12-22', name: 'Weihnachtsferien', type: 'school_holiday' },
-  { date: '2027-12-23', name: 'Weihnachtsferien', type: 'school_holiday' },
+  // 2027 - Weihnachtsferien (24. Dezember - 7. Januar 2028)
   { date: '2027-12-24', name: 'Weihnachtsferien', type: 'school_holiday' },
   { date: '2027-12-25', name: 'Weihnachtsferien', type: 'school_holiday' },
   { date: '2027-12-26', name: 'Weihnachtsferien', type: 'school_holiday' },
@@ -473,18 +485,124 @@ const BAVARIAN_SCHOOL_HOLIDAYS: Holiday[] = [
   { date: '2028-01-05', name: 'Weihnachtsferien', type: 'school_holiday' },
   { date: '2028-01-06', name: 'Weihnachtsferien', type: 'school_holiday' },
   { date: '2028-01-07', name: 'Weihnachtsferien', type: 'school_holiday' },
+  
+  // 2028 - Winterferien (28. Februar - 3. März)
+  { date: '2028-02-28', name: 'Winterferien', type: 'school_holiday' },
+  { date: '2028-02-29', name: 'Winterferien', type: 'school_holiday' },
+  { date: '2028-03-01', name: 'Winterferien', type: 'school_holiday' },
+  { date: '2028-03-02', name: 'Winterferien', type: 'school_holiday' },
+  { date: '2028-03-03', name: 'Winterferien', type: 'school_holiday' },
+  
+  // 2028 - Osterferien (10. April - 21. April)
+  { date: '2028-04-10', name: 'Osterferien', type: 'school_holiday' },
+  { date: '2028-04-11', name: 'Osterferien', type: 'school_holiday' },
+  { date: '2028-04-12', name: 'Osterferien', type: 'school_holiday' },
+  { date: '2028-04-13', name: 'Osterferien', type: 'school_holiday' },
+  { date: '2028-04-14', name: 'Osterferien', type: 'school_holiday' },
+  { date: '2028-04-15', name: 'Osterferien', type: 'school_holiday' },
+  { date: '2028-04-16', name: 'Osterferien', type: 'school_holiday' },
+  { date: '2028-04-17', name: 'Osterferien', type: 'school_holiday' },
+  { date: '2028-04-18', name: 'Osterferien', type: 'school_holiday' },
+  { date: '2028-04-19', name: 'Osterferien', type: 'school_holiday' },
+  { date: '2028-04-20', name: 'Osterferien', type: 'school_holiday' },
+  { date: '2028-04-21', name: 'Osterferien', type: 'school_holiday' },
+  
+  // 2028 - Pfingstferien (6. Juni - 16. Juni)
+  { date: '2028-06-06', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2028-06-07', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2028-06-08', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2028-06-09', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2028-06-10', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2028-06-11', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2028-06-12', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2028-06-13', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2028-06-14', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2028-06-15', name: 'Pfingstferien', type: 'school_holiday' },
+  { date: '2028-06-16', name: 'Pfingstferien', type: 'school_holiday' },
+  
+  // 2028 - Sommerferien (31. Juli - 11. September)
+  { date: '2028-07-31', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-01', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-02', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-03', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-04', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-05', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-06', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-07', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-08', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-09', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-10', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-11', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-12', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-13', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-14', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-15', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-16', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-17', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-18', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-19', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-20', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-21', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-22', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-23', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-24', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-25', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-26', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-27', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-28', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-29', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-30', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-08-31', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-09-01', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-09-02', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-09-03', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-09-04', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-09-05', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-09-06', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-09-07', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-09-08', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-09-09', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-09-10', name: 'Sommerferien', type: 'school_holiday' },
+  { date: '2028-09-11', name: 'Sommerferien', type: 'school_holiday' },
+
+  
+  // 2028 - Herbstferien (30. Oktober - 3. November)
+  { date: '2028-10-30', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2028-10-31', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2028-11-01', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2028-11-02', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2028-11-03', name: 'Herbstferien', type: 'school_holiday' },
+  
+  // 2028 - Weihnachtsferien (23. Dezember - 5. Januar 2029)
+  { date: '2028-12-23', name: 'Weihnachtsferien', type: 'school_holiday' },
+  { date: '2028-12-24', name: 'Weihnachtsferien', type: 'school_holiday' },
+  { date: '2028-12-25', name: 'Weihnachtsferien', type: 'school_holiday' },
+  { date: '2028-12-26', name: 'Weihnachtsferien', type: 'school_holiday' },
+  { date: '2028-12-27', name: 'Weihnachtsferien', type: 'school_holiday' },
+  { date: '2028-12-28', name: 'Weihnachtsferien', type: 'school_holiday' },
+  { date: '2028-12-29', name: 'Weihnachtsferien', type: 'school_holiday' },
+  { date: '2028-12-30', name: 'Weihnachtsferien', type: 'school_holiday' },
+  { date: '2028-12-31', name: 'Weihnachtsferien', type: 'school_holiday' },
+  { date: '2029-01-01', name: 'Weihnachtsferien', type: 'school_holiday' },
+  { date: '2029-01-02', name: 'Weihnachtsferien', type: 'school_holiday' },
+  { date: '2029-01-03', name: 'Weihnachtsferien', type: 'school_holiday' },
+  { date: '2029-01-04', name: 'Weihnachtsferien', type: 'school_holiday' },
+  { date: '2029-01-05', name: 'Weihnachtsferien', type: 'school_holiday' },
 ]
 
 /**
  * Kombiniert alle Feiertage und Schulferien
  */
-const ALL_HOLIDAYS = [...BAVARIAN_HOLIDAYS, ...BAVARIAN_SCHOOL_HOLIDAYS]
+const ALL_HOLIDAYS = [...BAVARIAN_HOLIDAYS, ...ADDITIONAL_DAYS, ...BAVARIAN_SCHOOL_HOLIDAYS]
 
 /**
  * Formatiert ein Datum zu ISO-String (YYYY-MM-DD)
  */
 function formatDateToISO(date: Date): string {
-  return date.toISOString().split('T')[0]
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 /**

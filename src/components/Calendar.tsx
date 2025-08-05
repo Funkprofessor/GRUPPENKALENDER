@@ -40,24 +40,25 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
     })
 
     events.forEach(event => {
-      const startDate = new Date(event.startDate)
-      const endDate = new Date(event.endDate)
+      // Verwende die Datumsstrings direkt ohne Zeitzonenkonvertierung
+      const startDateStr = event.startDate
+      const endDateStr = event.endDate
       
       // Für jeden Tag zwischen Start- und Enddatum das Event hinzufügen
-      let currentDate = new Date(startDate)
-      while (currentDate <= endDate) {
-        const dateKey = format(currentDate, 'yyyy-MM-dd')
-        
-        if (grouped[dateKey] && grouped[dateKey][event.roomId]) {
+      let currentDateStr = startDateStr
+      while (currentDateStr <= endDateStr) {
+        if (grouped[currentDateStr] && grouped[currentDateStr][event.roomId]) {
           // Prüfe ob das Event bereits für diesen Tag existiert
-          const existingEvent = grouped[dateKey][event.roomId].find(e => e.id === event.id)
+          const existingEvent = grouped[currentDateStr][event.roomId].find(e => e.id === event.id)
           if (!existingEvent) {
-            grouped[dateKey][event.roomId].push(event)
+            grouped[currentDateStr][event.roomId].push(event)
           }
         }
         
-        // Nächster Tag
+        // Nächster Tag (YYYY-MM-DD Format)
+        const currentDate = new Date(currentDateStr + 'T00:00:00')
         currentDate.setDate(currentDate.getDate() + 1)
+        currentDateStr = format(currentDate, 'yyyy-MM-dd')
       }
     })
 

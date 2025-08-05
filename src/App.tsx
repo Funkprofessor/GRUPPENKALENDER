@@ -293,7 +293,8 @@ function App() {
                 onClick={handleAddEvent}
                 title="Neuen Termin hinzufügen"
               >
-                + Neuer Termin
+                <span className="desktop-only">+ Neuer Termin</span>
+                <span className="mobile-only">+</span>
               </button>
             </div>
           </div>
