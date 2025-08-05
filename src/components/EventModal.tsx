@@ -286,27 +286,28 @@ const EventModal: React.FC<EventModalProps> = ({
     // Wenn beide Events am gleichen Tag sind, prüfe Zeitüberschneidung
     if (event1.startDate === event2.startDate && event1.endDate === event2.endDate) {
       // Gleicher Tag - prüfe Zeitüberschneidung
+      // Nur wenn sich die Zeiten überschneiden (nicht wenn sie sich berühren)
       const overlaps = event1.endTime > event2.startTime && event2.endTime > event1.startTime
       console.log('isOverlapping - Gleicher Tag, Zeitüberschneidung:', overlaps)
       return overlaps
     }
     
-    // Wenn ein Event mehrere Tage überspannt und das andere an einem Tag ist
-    if (event1.startDate !== event1.endDate || event2.startDate !== event2.endDate) {
-      // Prüfe ob sich die Zeiträume überschneiden
-      const event1Start = new Date(`${event1.startDate}T${event1.startTime}`)
-      const event1End = new Date(`${event1.endDate}T${event1.endTime}`)
-      const event2Start = new Date(`${event2.startDate}T${event2.startTime}`)
-      const event2End = new Date(`${event2.endDate}T${event2.endTime}`)
-      
-      const overlaps = event1End > event2Start && event2End > event1Start
-      console.log('isOverlapping - Mehrere Tage, Überschneidung:', overlaps)
-      return overlaps
-    }
+    // Wenn Events mehrere Tage überspannen, prüfe ob sie sich zeitlich überschneiden
+    // Erstelle DateTime-Objekte für präzise Zeitvergleiche
+    const event1Start = new Date(`${event1.startDate}T${event1.startTime}`)
+    const event1End = new Date(`${event1.endDate}T${event1.endTime}`)
+    const event2Start = new Date(`${event2.startDate}T${event2.startTime}`)
+    const event2End = new Date(`${event2.endDate}T${event2.endTime}`)
     
-    // Fallback: Wenn Datumsüberschneidung vorhanden ist, dann Überschneidung
-    console.log('isOverlapping - Fallback: Überschneidung vorhanden')
-    return true
+    // Prüfe ob sich die Zeiträume überschneiden (nicht nur berühren)
+    const overlaps = event1End > event2Start && event2End > event1Start
+    console.log('isOverlapping - Mehrere Tage, Überschneidung:', overlaps, {
+      event1Start: event1Start.toISOString(),
+      event1End: event1End.toISOString(),
+      event2Start: event2Start.toISOString(),
+      event2End: event2End.toISOString()
+    })
+    return overlaps
   }
 
   /**

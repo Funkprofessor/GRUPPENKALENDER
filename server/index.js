@@ -217,11 +217,9 @@ app.get('/api/events', (req, res) => {
       // Für Kollisionsprüfung: Finde Events die sich mit dem Zeitraum überschneiden
       // Ein Event überschneidet sich wenn:
       // - Es startet vor dem Ende des Zeitraums UND endet nach dem Start des Zeitraums
-      // ODER: Es startet innerhalb des Zeitraums
-      // ODER: Es endet innerhalb des Zeitraums
-      const collisionCondition = '(startDate <= ? AND endDate >= ?) OR (startDate >= ? AND startDate <= ?) OR (endDate >= ? AND endDate <= ?)'
-      params.push(endDate, startDate, startDate, endDate, startDate, endDate)
-      console.log('API /events - Kollisionsprüfung: Erweiterte Logik für', startDate, 'bis', endDate)
+      const collisionCondition = '(startDate <= ? AND endDate >= ?)'
+      params.push(endDate, startDate)
+      console.log('API /events - Kollisionsprüfung: Korrigierte Logik für', startDate, 'bis', endDate)
       
       if (roomId) {
         // Raum-Bedingung mit Kollisionsbedingung kombinieren
