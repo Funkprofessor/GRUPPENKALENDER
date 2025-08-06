@@ -214,20 +214,21 @@ app.get('/api/events', (req, res) => {
     const conditions = []
 
     if (startDate && endDate) {
-      // Für Kollisionsprüfung: Finde Events die sich mit dem Zeitraum überschneiden
-      // Ein Event überschneidet sich wenn:
-      // - Es startet vor dem Ende des Zeitraums UND endet nach dem Start des Zeitraums
-      const collisionCondition = '(startDate <= ? AND endDate >= ?)'
-      params.push(endDate, startDate)
-      console.log('API /events - Kollisionsprüfung: Korrigierte Logik für', startDate, 'bis', endDate)
+      // Für Kollisionsprüfung: Lade alle Events im Raum und filtere nach Kollisionen
+      // Hole startTime und endTime aus den Query-Parametern
+      const startTime = req.query.startTime || '00:00'
+      const endTime = req.query.endTime || '23:59'
       
+      console.log('API /events - Kollisionsprüfung: Zeitbasierte Logik für', startDate, startTime, 'bis', endDate, endTime)
+      
+      // Lade alle Events im Raum (Kollisionsprüfung wird nach dem Laden durchgeführt)
       if (roomId) {
-        // Raum-Bedingung mit Kollisionsbedingung kombinieren
-        conditions.push(`(${collisionCondition}) AND roomId = ?`)
+        conditions.push('roomId = ?')
         params.push(roomId)
-      } else {
-        conditions.push(collisionCondition)
       }
+      
+      // Lade alle Events im Raum für Kollisionsprüfung
+      // Die Filterung nach Kollisionen erfolgt nach dem Laden
     } else {
       // Fallback für andere Abfragen
       if (startDate) {
@@ -266,10 +267,128 @@ app.get('/api/events', (req, res) => {
     console.log('API /events - Found rows:', rows.length)
     console.log('API /events - Sample rows:', rows.slice(0, 3))
 
-    res.json({
-      success: true,
-      data: rows
-    })
+    // Wenn Kollisionsprüfung erforderlich ist, filtere die Events
+    if (startDate && endDate) {
+      const startTime = req.query.startTime || '00:00'
+      const endTime = req.query.endTime || '23:59'
+      
+      console.log('API /events - Kollisionsprüfung - Query Params:', {
+        startDate,
+        endDate,
+        startTime,
+        endTime,
+        allQueryParams: req.query
+      })
+      
+      // Erstelle kombinierte Datum+Zeit Strings für Vergleich
+      // Verwende String-Vergleich um Zeitzonen-Probleme zu vermeiden
+      const newEventStartStr = `${startDate} ${startTime}`
+      const newEventEndStr = `${endDate} ${endTime}`
+      
+      console.log('API /events - Kollisionsprüfung: Prüfe für', newEventStartStr, 'bis', newEventEndStr)
+      
+      // Filtere Events die kollidieren
+      const collidingEvents = rows.filter(event => {
+        const eventStartStr = `${event.startDate} ${event.startTime}`
+        const eventEndStr = `${event.endDate} ${event.endTime}`
+        
+        // Kollision: Event startet vor dem Ende des neuen Events UND endet nach dem Start des neuen Events
+        const hasCollision = eventStartStr < newEventEndStr && eventEndStr > newEventStartStr
+        
+        if (hasCollision) {
+          console.log('API /events - Kollision gefunden:', event.title, '(', event.startDate, event.startTime, '-', event.endDate, event.endTime, ')')
+        }
+        
+        return hasCollision
+      })
+      
+      console.log('API /events - Kollisionsprüfung: Gefunden', collidingEvents.length, 'kollidierende Events')
+      
+      // Zusätzlich: Prüfe wiederholende Events die sich mit dem neuen Event überschneiden könnten
+      const repeatingEvents = rows.filter(event => 
+        event.repeatType !== 'none' && 
+        event.repeatUntil
+      )
+      
+      console.log('API /events - Wiederholende Events gefunden:', repeatingEvents.length)
+      repeatingEvents.forEach(event => {
+        console.log('API /events - Wiederholendes Event:', event.title, '(', event.repeatType, 'bis', event.repeatUntil, ')')
+      })
+      
+      // Gruppiere wiederholende Events nach repeatGroupId oder erstelle einzelne Gruppe
+      const repeatingGroups = new Map()
+      repeatingEvents.forEach(event => {
+        const groupId = event.repeatGroupId || `single_${event.id}`
+        if (!repeatingGroups.has(groupId)) {
+          repeatingGroups.set(groupId, [])
+        }
+        repeatingGroups.get(groupId).push(event)
+      })
+      
+      // Prüfe jede Wiederholungsgruppe auf Kollisionen
+      repeatingGroups.forEach((groupEvents, groupId) => {
+        if (groupEvents.length === 0) return
+        
+        const baseEvent = groupEvents[0]
+        const repeatUntil = new Date(baseEvent.repeatUntil)
+        const newEventDate = new Date(startDate)
+        
+        // Prüfe ob das neue Event innerhalb der Wiederholungsperiode liegt
+        if (newEventDate <= repeatUntil) {
+          // Generiere alle Wiederholungen und prüfe auf Kollisionen
+          let currentDate = new Date(baseEvent.startDate)
+          let count = 0
+          const maxRepeats = 100 // Sicherheitslimit
+          
+          while (currentDate <= repeatUntil && count < maxRepeats) {
+            const repeatedEventStartStr = `${currentDate.toISOString().split('T')[0]} ${baseEvent.startTime}`
+            const repeatedEventEndStr = `${currentDate.toISOString().split('T')[0]} ${baseEvent.endTime}`
+            
+            // Prüfe ob diese Wiederholung mit dem neuen Event kollidiert
+            const hasRepeatingCollision = repeatedEventStartStr < newEventEndStr && repeatedEventEndStr > newEventStartStr
+            
+            if (hasRepeatingCollision) {
+              console.log('API /events - Kollision mit Wiederholung gefunden:', baseEvent.title, '(', currentDate.toISOString().split('T')[0], baseEvent.startTime, '-', currentDate.toISOString().split('T')[0], baseEvent.endTime, ')')
+              
+              // Füge das Basis-Event zur Kollisionsliste hinzu (falls noch nicht vorhanden)
+              if (!collidingEvents.find(e => e.id === baseEvent.id)) {
+                collidingEvents.push(baseEvent)
+              }
+              break
+            }
+            
+            // Berechne nächste Wiederholung
+            switch (baseEvent.repeatType) {
+              case 'daily':
+                currentDate.setDate(currentDate.getDate() + 1)
+                break
+              case 'weekly':
+                currentDate.setDate(currentDate.getDate() + 7)
+                break
+              case 'monthly':
+                currentDate.setMonth(currentDate.getMonth() + 1)
+                break
+              case 'yearly':
+                currentDate.setFullYear(currentDate.getFullYear() + 1)
+                break
+            }
+            count++
+          }
+        }
+      })
+      
+      console.log('API /events - Kollisionsprüfung: Gefunden', collidingEvents.length, 'kollidierende Events')
+      
+      res.json({
+        success: true,
+        data: collidingEvents
+      })
+    } else {
+      res.json({
+        success: true,
+        data: rows
+      })
+    }
   })
 })
 

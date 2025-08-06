@@ -221,18 +221,23 @@ const EventModal: React.FC<EventModalProps> = ({
    */
   const checkCollisions = async (): Promise<Event[]> => {
     try {
+      // Berechne die korrekten Zeiten basierend auf den aktuellen UI-Werten
+      let startTime = formData.startTime
+      let endTime = formData.endTime
+      
+      if (!isAllDay) {
+        startTime = `${startHour.padStart(2, '0')}:${startMinute.padStart(2, '0')}`
+        endTime = `${endHour.padStart(2, '0')}:${endMinute.padStart(2, '0')}`
+      } else {
+        startTime = '00:00'
+        endTime = '23:59'
+      }
+      
       // Debug: Zeige die API-URL
-      const apiUrl = `/api/events?roomId=${formData.roomId}&startDate=${formData.startDate}&endDate=${formData.endDate}`
+      const apiUrl = `/api/events?roomId=${formData.roomId}&startDate=${formData.startDate}&endDate=${formData.endDate}&startTime=${startTime}&endTime=${endTime}`
       console.log('Kollisionsprüfung - API URL:', apiUrl)
+      console.log('Kollisionsprüfung - Korrekte Zeiten:', { startTime, endTime })
       console.log('Kollisionsprüfung - FormData:', formData)
-      
-      // Teste auch eine einfachere Abfrage ohne Datumsfilter
-      const simpleApiUrl = `/api/events?roomId=${formData.roomId}`
-      console.log('Kollisionsprüfung - Simple API URL (nur Raum):', simpleApiUrl)
-      
-      const simpleResponse = await fetch(simpleApiUrl)
-      const simpleResult = await simpleResponse.json()
-      console.log('Kollisionsprüfung - Simple API Response (alle Events im Raum):', simpleResult)
       
       // Hole alle Events für den ausgewählten Raum im Zeitraum
       const response = await fetch(apiUrl)
@@ -241,26 +246,33 @@ const EventModal: React.FC<EventModalProps> = ({
       const result = await response.json()
       console.log('Kollisionsprüfung - Raw API Response:', result)
       
-      // Extrahiere Events aus der API-Antwort
+      // Extrahiere Events aus der API-Antwort - diese sind bereits kollidierende Events vom Backend
       const events: Event[] = result.success ? result.data : []
       
-      console.log('Kollisionsprüfung - Gefundene Events:', events)
+      console.log('Kollisionsprüfung - Gefundene kollidierende Events vom Backend:', events)
+      console.log('Kollisionsprüfung - Event Details:', events.map(e => ({
+        id: e.id,
+        title: e.title,
+        startDate: e.startDate,
+        endDate: e.endDate,
+        startTime: e.startTime,
+        endTime: e.endTime
+      })))
+      console.log('Kollisionsprüfung - Vollständige Events:', JSON.stringify(events, null, 2))
       
       // Filtere das aktuelle Event heraus (falls es ein Update ist)
-      const otherEvents = events.filter(e => !event || e.id !== event.id)
-      console.log('Kollisionsprüfung - Events nach Filterung:', otherEvents)
+      const collisions = events.filter(e => !event || e.id !== event.id)
       
-      const collisions: Event[] = []
-      
-      for (const existingEvent of otherEvents) {
-        // Prüfe ob sich die Events überschneiden
-        if (isOverlapping(formData, existingEvent)) {
-          collisions.push(existingEvent)
-          console.log('Kollision gefunden:', existingEvent)
-        }
-      }
-      
-      console.log('Kollisionsprüfung - Gefundene Kollisionen:', collisions)
+      console.log('Kollisionsprüfung - Finale Kollisionen nach Filterung:', collisions)
+      console.log('Kollisionsprüfung - Kollision Details:', collisions.map(e => ({
+        id: e.id,
+        title: e.title,
+        startDate: e.startDate,
+        endDate: e.endDate,
+        startTime: e.startTime,
+        endTime: e.endTime
+      })))
+      console.log('Kollisionsprüfung - Vollständige Kollisionen:', JSON.stringify(collisions, null, 2))
       return collisions
     } catch (error) {
       console.error('Fehler beim Prüfen der Kollisionen:', error)
@@ -269,12 +281,81 @@ const EventModal: React.FC<EventModalProps> = ({
   }
 
   /**
+   * Generiert Wiederholungstermine aus einem bestehenden Event
+   */
+  const generateRepeatedEventsFromExisting = (existingEvent: Event): CreateEventData[] => {
+    if (existingEvent.repeatType === 'none' || !existingEvent.repeatUntil) {
+      return []
+    }
+
+    const events: CreateEventData[] = []
+    const startDate = new Date(existingEvent.startDate)
+    const endDate = new Date(existingEvent.endDate)
+    const repeatUntil = new Date(existingEvent.repeatUntil)
+    const duration = endDate.getTime() - startDate.getTime()
+
+    let currentStartDate = new Date(startDate)
+    let currentEndDate = new Date(endDate)
+    let count = 0
+    const maxRepeats = 100 // Sicherheitslimit
+
+    while (currentStartDate <= repeatUntil && count < maxRepeats) {
+      // Erstelle ein Event für diesen Wiederholungstermin
+      const repeatedEvent: CreateEventData = {
+        title: existingEvent.title,
+        description: existingEvent.description || '',
+        roomId: existingEvent.roomId,
+        startDate: currentStartDate.toISOString().split('T')[0],
+        endDate: currentEndDate.toISOString().split('T')[0],
+        startTime: existingEvent.startTime,
+        endTime: existingEvent.endTime,
+        color: existingEvent.color,
+        repeatType: 'none' // Einzelne Wiederholung
+      }
+      
+      events.push(repeatedEvent)
+
+      // Berechne nächste Wiederholung basierend auf Intervall
+      switch (existingEvent.repeatType) {
+        case 'daily':
+          currentStartDate.setDate(currentStartDate.getDate() + 1)
+          currentEndDate.setDate(currentEndDate.getDate() + 1)
+          break
+        case 'weekly':
+          currentStartDate.setDate(currentStartDate.getDate() + 7)
+          currentEndDate.setDate(currentEndDate.getDate() + 7)
+          break
+        case 'monthly':
+          currentStartDate.setMonth(currentStartDate.getMonth() + 1)
+          currentEndDate.setMonth(currentEndDate.getMonth() + 1)
+          break
+        case 'yearly':
+          currentStartDate.setFullYear(currentStartDate.getFullYear() + 1)
+          currentEndDate.setFullYear(currentEndDate.getFullYear() + 1)
+          break
+        default:
+          break
+      }
+      count++
+    }
+
+    return events
+  }
+
+  /**
    * Prüft ob zwei Events sich überschneiden
    */
-  const isOverlapping = (event1: CreateEventData, event2: Event): boolean => {
+  const isOverlapping = (event1: CreateEventData, event2: Event | CreateEventData): boolean => {
     console.log('isOverlapping - Prüfe:', {
       event1: { startDate: event1.startDate, endDate: event1.endDate, startTime: event1.startTime, endTime: event1.endTime },
-      event2: { startDate: event2.startDate, endDate: event2.endDate, startTime: event2.startTime, endTime: event2.endTime }
+      event2: { 
+        startDate: event2.startDate, 
+        endDate: event2.endDate, 
+        startTime: event2.startTime, 
+        endTime: event2.endTime, 
+        repeatType: 'repeatType' in event2 ? event2.repeatType : undefined, 
+        repeatUntil: 'repeatUntil' in event2 ? event2.repeatUntil : undefined 
+      }
     })
     
     // Prüfe Datumsüberschneidung
@@ -283,16 +364,6 @@ const EventModal: React.FC<EventModalProps> = ({
       return false
     }
     
-    // Wenn beide Events am gleichen Tag sind, prüfe Zeitüberschneidung
-    if (event1.startDate === event2.startDate && event1.endDate === event2.endDate) {
-      // Gleicher Tag - prüfe Zeitüberschneidung
-      // Nur wenn sich die Zeiten überschneiden (nicht wenn sie sich berühren)
-      const overlaps = event1.endTime > event2.startTime && event2.endTime > event1.startTime
-      console.log('isOverlapping - Gleicher Tag, Zeitüberschneidung:', overlaps)
-      return overlaps
-    }
-    
-    // Wenn Events mehrere Tage überspannen, prüfe ob sie sich zeitlich überschneiden
     // Erstelle DateTime-Objekte für präzise Zeitvergleiche
     const event1Start = new Date(`${event1.startDate}T${event1.startTime}`)
     const event1End = new Date(`${event1.endDate}T${event1.endTime}`)
@@ -301,7 +372,7 @@ const EventModal: React.FC<EventModalProps> = ({
     
     // Prüfe ob sich die Zeiträume überschneiden (nicht nur berühren)
     const overlaps = event1End > event2Start && event2End > event1Start
-    console.log('isOverlapping - Mehrere Tage, Überschneidung:', overlaps, {
+    console.log('isOverlapping - Überschneidung:', overlaps, {
       event1Start: event1Start.toISOString(),
       event1End: event1End.toISOString(),
       event2Start: event2Start.toISOString(),
@@ -484,6 +555,7 @@ const EventModal: React.FC<EventModalProps> = ({
     
     if (collisions.length > 0) {
       console.log('handleSave - Zeige Kollisionswarnung')
+      console.log('handleSave - CollisionEvents vor setState:', collisions)
       setCollisionEvents(collisions)
       setShowCollisionWarning(true)
       return // Zeige Warnung, aber erlaube später das Speichern
@@ -1086,13 +1158,15 @@ const EventModal: React.FC<EventModalProps> = ({
               </p>
               
               <div className="collision-list">
-                {collisionEvents.map(collisionEvent => (
+                {collisionEvents.map((collisionEvent, index) => (
                   <div key={collisionEvent.id} className="collision-item">
-                    <div className="collision-title">{collisionEvent.title}</div>
+                    <div className="collision-title">
+                      {index + 1}. {collisionEvent.title}
+                    </div>
                     <div className="collision-details">
                       {collisionEvent.startDate === collisionEvent.endDate 
                         ? `${collisionEvent.startDate} ${collisionEvent.startTime} - ${collisionEvent.endTime}`
-                        : `${collisionEvent.startDate} - ${collisionEvent.endDate}`
+                        : `${collisionEvent.startDate} ${collisionEvent.startTime} - ${collisionEvent.endDate} ${collisionEvent.endTime}`
                       }
                     </div>
                   </div>
