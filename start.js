@@ -52,6 +52,7 @@ if (isDev) {
     if (code === 0) {
       console.log('✅ Frontend erfolgreich gebaut');
       startProcess('node', ['server/index.js'], 'Backend', '🔧');
+		startProcess('./node_modules/http-server/bin/http-server', ['dist'], 'Frontend', '🔧');
     } else {
       console.error('❌ Frontend Build fehlgeschlagen');
       process.exit(1);
@@ -81,7 +82,7 @@ if (isDev) {
     if (code === 0) {
       console.log('✅ Frontend erfolgreich gebaut');
       startProcess('node', ['server/index.js'], 'Backend', '🔧');
-      startProcess('./node_modules/http-server/bin/http-server', ['dist', '-p', '3000'], 'Frontend', '🔧');
+      startProcess('./node_modules/http-server/bin/http-server', ['dist'], 'Frontend', '🔧');
     } else {
       console.error('❌ Frontend Build fehlgeschlagen');
       process.exit(1);
