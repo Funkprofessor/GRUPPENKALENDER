@@ -111,7 +111,8 @@ function migrateEventsTable() {
   const migrations = [
     'ALTER TABLE events ADD COLUMN repeatGroupId TEXT',
     'ALTER TABLE events ADD COLUMN repeatWeekday INTEGER',
-    'ALTER TABLE events ADD COLUMN repeatWeekOfMonth INTEGER'
+    'ALTER TABLE events ADD COLUMN repeatWeekOfMonth INTEGER',
+    'ALTER TABLE events ADD COLUMN repeatInterval INTEGER'
   ]
 
   migrations.forEach((migration, index) => {
@@ -152,6 +153,74 @@ function insertDefaultRooms() {
  */
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2)
+}
+
+/**
+ * Prüft ob ein wiederholendes Event an einem bestimmten Tag stattfindet
+ */
+function isRecurringEventOnDay(event, day) {
+  const dayKey = day.toISOString().split('T')[0]
+  
+  // Wenn das Event nicht wiederkehrend ist, prüfe nur das Datum
+  if (event.repeatType === 'none') {
+    return event.startDate <= dayKey && event.endDate >= dayKey
+  }
+  
+  // Prüfe ob der Tag nach dem Enddatum der Wiederholung liegt
+  if (event.repeatUntil && dayKey > event.repeatUntil) {
+    return false
+  }
+  
+  // Prüfe ob der Tag vor dem Startdatum liegt
+  if (dayKey < event.startDate) {
+    return false
+  }
+  
+  const startDate = new Date(event.startDate)
+  const checkDate = new Date(dayKey)
+  
+  switch (event.repeatType) {
+    case 'daily':
+      // Wenn kein repeatInterval gesetzt ist, verwende 1 (täglich)
+      const interval = event.repeatInterval || 1
+      
+      // Berechne die Anzahl der Tage seit dem Start
+      const daysSinceStart = Math.floor((checkDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+      
+      // Prüfe ob der Tag im Intervall liegt und zwischen Start und Ende
+      return checkDate >= startDate && checkDate <= new Date(event.repeatUntil || event.endDate) && daysSinceStart % interval === 0
+      
+    case 'weekly':
+      // Wenn kein repeatInterval gesetzt ist, verwende 1 (jede Woche)
+      const weeklyInterval = event.repeatInterval || 1
+      
+      // Berechne die Anzahl der Wochen seit dem Start
+      const weeksSinceStart = Math.floor((checkDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 7))
+      
+      // Prüfe ob der Tag der gleiche Wochentag ist und im Intervall liegt
+      return startDate.getDay() === checkDate.getDay() && weeksSinceStart % weeklyInterval === 0
+      
+    case 'monthly':
+      // Monatlich: Gleicher Tag im Monat
+      return startDate.getDate() === checkDate.getDate()
+      
+    case 'monthly_weekday':
+      // Monatlich an Wochentag: Gleicher Wochentag in gleicher Woche des Monats
+      if (event.repeatWeekday && event.repeatWeekOfMonth) {
+        const startWeek = Math.ceil(startDate.getDate() / 7)
+        const checkWeek = Math.ceil(checkDate.getDate() / 7)
+        return startDate.getDay() === checkDate.getDay() && startWeek === checkWeek
+      }
+      return false
+      
+    case 'yearly':
+      // Jährlich: Gleicher Tag und Monat
+      return startDate.getDate() === checkDate.getDate() && 
+             startDate.getMonth() === checkDate.getMonth()
+      
+    default:
+      return false
+  }
 }
 
 /**
@@ -341,29 +410,38 @@ app.get('/api/events', (req, res) => {
           const maxRepeats = 100 // Sicherheitslimit
           
           while (currentDate <= repeatUntil && count < maxRepeats) {
-            const repeatedEventStartStr = `${currentDate.toISOString().split('T')[0]} ${baseEvent.startTime}`
-            const repeatedEventEndStr = `${currentDate.toISOString().split('T')[0]} ${baseEvent.endTime}`
+            // Prüfe ob das Event an diesem spezifischen Tag stattfindet
+            const isEventOnThisDay = isRecurringEventOnDay(baseEvent, currentDate)
             
-            // Prüfe ob diese Wiederholung mit dem neuen Event kollidiert
-            const hasRepeatingCollision = repeatedEventStartStr < newEventEndStr && repeatedEventEndStr > newEventStartStr
-            
-            if (hasRepeatingCollision) {
-              console.log('API /events - Kollision mit Wiederholung gefunden:', baseEvent.title, '(', currentDate.toISOString().split('T')[0], baseEvent.startTime, '-', currentDate.toISOString().split('T')[0], baseEvent.endTime, ')')
+            if (isEventOnThisDay) {
+              const repeatedEventStartStr = `${currentDate.toISOString().split('T')[0]} ${baseEvent.startTime}`
+              const repeatedEventEndStr = `${currentDate.toISOString().split('T')[0]} ${baseEvent.endTime}`
               
-              // Füge das Basis-Event zur Kollisionsliste hinzu (falls noch nicht vorhanden)
-              if (!collidingEvents.find(e => e.id === baseEvent.id)) {
-                collidingEvents.push(baseEvent)
+              // Prüfe ob diese Wiederholung mit dem neuen Event kollidiert
+              const hasRepeatingCollision = repeatedEventStartStr < newEventEndStr && repeatedEventEndStr > newEventStartStr
+              
+              if (hasRepeatingCollision) {
+                console.log('API /events - Kollision mit Wiederholung gefunden:', baseEvent.title, '(', currentDate.toISOString().split('T')[0], baseEvent.startTime, '-', currentDate.toISOString().split('T')[0], baseEvent.endTime, ')')
+                
+                // Füge das Basis-Event zur Kollisionsliste hinzu (falls noch nicht vorhanden)
+                if (!collidingEvents.find(e => e.id === baseEvent.id)) {
+                  collidingEvents.push(baseEvent)
+                }
+                break
               }
-              break
             }
             
             // Berechne nächste Wiederholung
             switch (baseEvent.repeatType) {
               case 'daily':
-                currentDate.setDate(currentDate.getDate() + 1)
+                // Verwende repeatInterval oder Standard 1
+                const dailyInterval = baseEvent.repeatInterval || 1
+                currentDate.setDate(currentDate.getDate() + dailyInterval)
                 break
               case 'weekly':
-                currentDate.setDate(currentDate.getDate() + 7)
+                // Verwende repeatInterval oder Standard 1
+                const weeklyInterval = baseEvent.repeatInterval || 1
+                currentDate.setDate(currentDate.getDate() + (7 * weeklyInterval))
                 break
               case 'monthly':
                 currentDate.setMonth(currentDate.getMonth() + 1)
@@ -446,8 +524,9 @@ app.post('/api/events', (req, res) => {
     endDate: eventData.endDate,
     startTime: eventData.startTime,
     endTime: eventData.endTime,
-    color: eventData.color || '#FF6B6B',
+    color: eventData.color || '#808080', // Grau als neue Standardfarbe
     repeatType: eventData.repeatType || 'none',
+    repeatInterval: eventData.repeatInterval || null,
     repeatUntil: eventData.repeatUntil || null,
     repeatGroupId: eventData.repeatGroupId || null,
     repeatWeekday: eventData.repeatWeekday || null,
@@ -459,16 +538,16 @@ app.post('/api/events', (req, res) => {
   const query = `
     INSERT INTO events (
       id, title, description, roomId, startDate, endDate, 
-      startTime, endTime, color, repeatType, repeatUntil, 
+      startTime, endTime, color, repeatType, repeatInterval, repeatUntil, 
       repeatGroupId, repeatWeekday, repeatWeekOfMonth,
       createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `
 
   const params = [
     newEvent.id, newEvent.title, newEvent.description, newEvent.roomId,
     newEvent.startDate, newEvent.endDate, newEvent.startTime, newEvent.endTime,
-    newEvent.color, newEvent.repeatType, newEvent.repeatUntil,
+    newEvent.color, newEvent.repeatType, newEvent.repeatInterval, newEvent.repeatUntil,
     newEvent.repeatGroupId, newEvent.repeatWeekday, newEvent.repeatWeekOfMonth,
     newEvent.createdAt, newEvent.updatedAt
   ]
@@ -533,6 +612,7 @@ app.put('/api/events/:id', (req, res) => {
       endTime: eventData.endTime,
       color: eventData.color || existingEvent.color,
       repeatType: eventData.repeatType || existingEvent.repeatType,
+      repeatInterval: eventData.repeatInterval || existingEvent.repeatInterval,
       repeatUntil: eventData.repeatUntil || null,
       repeatGroupId: eventData.repeatGroupId || existingEvent.repeatGroupId,
       repeatWeekday: eventData.repeatWeekday || existingEvent.repeatWeekday,
@@ -543,7 +623,7 @@ app.put('/api/events/:id', (req, res) => {
     const query = `
       UPDATE events SET 
         title = ?, description = ?, roomId = ?, startDate = ?, endDate = ?,
-        startTime = ?, endTime = ?, color = ?, repeatType = ?, repeatUntil = ?,
+        startTime = ?, endTime = ?, color = ?, repeatType = ?, repeatInterval = ?, repeatUntil = ?,
         repeatGroupId = ?, repeatWeekday = ?, repeatWeekOfMonth = ?,
         updatedAt = ?
       WHERE id = ?
@@ -553,7 +633,7 @@ app.put('/api/events/:id', (req, res) => {
       updatedEvent.title, updatedEvent.description, updatedEvent.roomId,
       updatedEvent.startDate, updatedEvent.endDate, updatedEvent.startTime,
       updatedEvent.endTime, updatedEvent.color, updatedEvent.repeatType,
-      updatedEvent.repeatUntil, updatedEvent.repeatGroupId, updatedEvent.repeatWeekday,
+      updatedEvent.repeatInterval, updatedEvent.repeatUntil, updatedEvent.repeatGroupId, updatedEvent.repeatWeekday,
       updatedEvent.repeatWeekOfMonth, updatedEvent.updatedAt, id
     ]
 

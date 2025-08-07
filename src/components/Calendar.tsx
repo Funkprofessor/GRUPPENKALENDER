@@ -25,11 +25,161 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
   }, [currentMonth])
 
   /**
+   * Prüft ob zwei Events zeitlich kollidieren
+   */
+  const eventsCollide = (event1: Event, event2: Event): boolean => {
+    // Wenn Events an verschiedenen Tagen sind, können sie nicht kollidieren
+    if (event1.startDate > event2.endDate || event2.startDate > event1.endDate) {
+      return false
+    }
+    
+    // Wenn beide Events ganztägig sind, kollidieren sie
+    if (isAllDayEvent(event1) && isAllDayEvent(event2)) {
+      return true
+    }
+    
+    // Wenn nur eines ganztägig ist, kollidiert es mit dem anderen
+    if (isAllDayEvent(event1) || isAllDayEvent(event2)) {
+      return true
+    }
+    
+    // Für Events mit spezifischen Zeiten: Prüfe Zeitüberschneidung
+    const event1Start = new Date(`${event1.startDate}T${event1.startTime}`)
+    const event1End = new Date(`${event1.endDate}T${event1.endTime}`)
+    const event2Start = new Date(`${event2.startDate}T${event2.startTime}`)
+    const event2End = new Date(`${event2.endDate}T${event2.endTime}`)
+    
+    return event1Start < event2End && event2Start < event1End
+  }
+
+  /**
+   * Prüft ob ein wiederkehrendes Event an einem bestimmten Tag stattfindet
+   */
+  const isRecurringEventOnDay = (event: Event, day: Date): boolean => {
+    const dayKey = format(day, 'yyyy-MM-dd')
+    
+    // Wenn das Event nicht wiederkehrend ist, prüfe nur das Datum
+    if (event.repeatType === 'none') {
+      return event.startDate <= dayKey && event.endDate >= dayKey
+    }
+    
+    // Prüfe ob der Tag nach dem Enddatum der Wiederholung liegt
+    if (event.repeatUntil && dayKey > event.repeatUntil) {
+      return false
+    }
+    
+    // Prüfe ob der Tag vor dem Startdatum liegt
+    if (dayKey < event.startDate) {
+      return false
+    }
+    
+    const startDate = new Date(event.startDate)
+    const checkDate = new Date(dayKey)
+    
+    switch (event.repeatType) {
+      case 'daily':
+        // Täglich: Jeder Tag zwischen Start und Ende
+        // Prüfe ob der spezifische Tag zwischen Start- und Enddatum liegt
+        const eventEndDate = event.repeatUntil ? new Date(event.repeatUntil) : new Date(event.endDate)
+        
+        // Wenn kein repeatInterval gesetzt ist, verwende 1 (täglich)
+        const interval = event.repeatInterval || 1
+        
+        // Berechne die Anzahl der Tage seit dem Start
+        const daysSinceStart = Math.floor((checkDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+        
+        // Prüfe ob der Tag im Intervall liegt und zwischen Start und Ende
+        return checkDate >= startDate && checkDate <= eventEndDate && daysSinceStart % interval === 0
+        
+
+        
+      case 'weekly':
+        // Wöchentlich: Gleicher Wochentag
+        // Wenn kein repeatInterval gesetzt ist, verwende 1 (jede Woche)
+        const weeklyInterval = event.repeatInterval || 1
+        
+        // Berechne die Anzahl der Wochen seit dem Start
+        const weeksSinceStart = Math.floor((checkDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 7))
+        
+        // Prüfe ob der Tag der gleiche Wochentag ist und im Intervall liegt
+        return startDate.getDay() === checkDate.getDay() && weeksSinceStart % weeklyInterval === 0
+        
+      case 'monthly':
+        // Monatlich: Gleicher Tag im Monat
+        return startDate.getDate() === checkDate.getDate()
+        
+      case 'monthly_weekday':
+        // Monatlich an Wochentag: Gleicher Wochentag in gleicher Woche des Monats
+        if (event.repeatWeekday && event.repeatWeekOfMonth) {
+          const startWeek = Math.ceil(startDate.getDate() / 7)
+          const checkWeek = Math.ceil(checkDate.getDate() / 7)
+          return startDate.getDay() === checkDate.getDay() && startWeek === checkWeek
+        }
+        return false
+        
+      case 'yearly':
+        // Jährlich: Gleicher Tag und Monat
+        return startDate.getDate() === checkDate.getDate() && 
+               startDate.getMonth() === checkDate.getMonth()
+        
+      default:
+        return false
+    }
+  }
+
+  /**
+   * Prüft ob ein Event an einem bestimmten Tag Kollisionen mit anderen Events hat
+   */
+  const hasCollisionsOnDay = (event: Event, day: Date): boolean => {
+    const dayKey = format(day, 'yyyy-MM-dd')
+    
+    // Prüfe ob das Event an diesem Tag stattfindet
+    if (!isRecurringEventOnDay(event, day)) {
+      return false
+    }
+    
+    // Hole alle Events für diesen Tag und Raum
+    const dayEvents = eventsByDateAndRoom[dayKey]?.[event.roomId] || []
+    
+    // Prüfe Kollisionen mit anderen Events am gleichen Tag
+    return dayEvents.some(otherEvent => {
+      // Ignoriere das gleiche Event
+      if (otherEvent.id === event.id) {
+        return false
+      }
+      
+      // Ignoriere Events ohne ID (noch nicht gespeichert)
+      if (!otherEvent.id) {
+        return false
+      }
+      
+      // Wenn beide Events ganztägig sind, kollidieren sie
+      if (isAllDayEvent(event) && isAllDayEvent(otherEvent)) {
+        return true
+      }
+      
+      // Wenn nur eines ganztägig ist, kollidiert es mit dem anderen
+      if (isAllDayEvent(event) || isAllDayEvent(otherEvent)) {
+        return true
+      }
+      
+      // Für Events mit spezifischen Zeiten: Prüfe Zeitüberschneidung
+      const eventStart = new Date(`${dayKey}T${event.startTime}`)
+      const eventEnd = new Date(`${dayKey}T${event.endTime}`)
+      const otherStart = new Date(`${dayKey}T${otherEvent.startTime}`)
+      const otherEnd = new Date(`${dayKey}T${otherEvent.endTime}`)
+      
+      return eventStart < otherEnd && otherStart < eventEnd
+    })
+  }
+
+  /**
    * Gruppiert Events nach Datum und Raum
    */
   const eventsByDateAndRoom = React.useMemo(() => {
     const grouped: Record<string, Record<string, Event[]>> = {}
     
+    // Initialisiere alle Tage und Räume
     daysInMonth.forEach(day => {
       const dateKey = format(day, 'yyyy-MM-dd')
       grouped[dateKey] = {}
@@ -39,29 +189,34 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
       })
     })
 
-    events.forEach(event => {
-      // Verwende die Datumsstrings direkt ohne Zeitzonenkonvertierung
-      const startDateStr = event.startDate
-      const endDateStr = event.endDate
-      
-      // Für jeden Tag zwischen Start- und Enddatum das Event hinzufügen
-      let currentDateStr = startDateStr
-      while (currentDateStr <= endDateStr) {
-        if (grouped[currentDateStr] && grouped[currentDateStr][event.roomId]) {
-          // Prüfe ob das Event bereits für diesen Tag existiert
-          const existingEvent = grouped[currentDateStr][event.roomId].find(e => e.id === event.id)
-          if (!existingEvent) {
-            grouped[currentDateStr][event.roomId].push(event)
+    // Filtere eindeutige Events (entferne Duplikate basierend auf repeatGroupId)
+    const uniqueEvents = events.filter((event, index, self) => {
+      // Wenn das Event eine repeatGroupId hat, prüfe auf Duplikate
+      if (event.repeatGroupId) {
+        return self.findIndex(e => e.repeatGroupId === event.repeatGroupId) === index
+      }
+      // Ansonsten verwende die normale ID
+      return self.findIndex(e => e.id === event.id) === index
+    })
+    
+    // Füge Events nur an den Tagen hinzu, an denen sie tatsächlich stattfinden
+    uniqueEvents.forEach(event => {
+      daysInMonth.forEach(day => {
+        const dateKey = format(day, 'yyyy-MM-dd')
+        
+        // Prüfe ob das Event an diesem Tag stattfindet
+        if (isRecurringEventOnDay(event, day)) {
+          if (grouped[dateKey] && grouped[dateKey][event.roomId]) {
+            // Prüfe ob das Event bereits für diesen Tag existiert
+            const existingEvent = grouped[dateKey][event.roomId].find(e => e.id === event.id)
+            if (!existingEvent) {
+              grouped[dateKey][event.roomId].push(event)
+            }
           }
         }
-        
-        // Nächster Tag (YYYY-MM-DD Format)
-        const currentDate = new Date(currentDateStr + 'T00:00:00')
-        currentDate.setDate(currentDate.getDate() + 1)
-        currentDateStr = format(currentDate, 'yyyy-MM-dd')
-      }
+      })
     })
-
+    
     return grouped
   }, [events, rooms, daysInMonth])
 
@@ -84,6 +239,10 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
    */
   const goToCurrentMonth = () => {
     setCurrentMonth(new Date())
+    // Nach dem Monatswechsel zur aktuellen Zeile scrollen
+    setTimeout(() => {
+      scrollToToday()
+    }, 100)
   }
 
   /**
@@ -94,10 +253,15 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
       // Berechne die Position der Zeile relativ zum Container
       const containerRect = tableContainerRef.current.getBoundingClientRect()
       const rowRect = todayRowRef.current.getBoundingClientRect()
-      const offset = rowRect.top - containerRect.top - 20 // 20px Abstand von oben
+      const rowHeight = todayRowRef.current.offsetHeight
+      const containerHeight = tableContainerRef.current.clientHeight
+      
+      // Berechne die optimale Position: Zeile soll vollständig sichtbar sein
+      // mit einem Abstand von 60px von oben (für Header und etwas Platz)
+      const targetOffset = rowRect.top - containerRect.top - 60
       
       // Scrolle zur Position
-      tableContainerRef.current.scrollTop += offset
+      tableContainerRef.current.scrollTop += targetOffset
     }
   }
 
@@ -153,6 +317,65 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
     return () => clearTimeout(timer)
   }, [currentMonth])
 
+  /**
+   * Debug-Funktion: Analysiert Events und zeigt Duplikate an
+   */
+  const analyzeEvents = React.useCallback(() => {
+    console.log('🔍 === EVENT-ANALYSE ===')
+    console.log(`Gesamtanzahl Events: ${events.length}`)
+    
+    // Gruppiere Events nach repeatGroupId
+    const groupedByRepeatId: Record<string, Event[]> = {}
+    const eventsWithoutRepeatId: Event[] = []
+    
+    events.forEach(event => {
+      if (event.repeatGroupId) {
+        if (!groupedByRepeatId[event.repeatGroupId]) {
+          groupedByRepeatId[event.repeatGroupId] = []
+        }
+        groupedByRepeatId[event.repeatGroupId].push(event)
+      } else {
+        eventsWithoutRepeatId.push(event)
+      }
+    })
+    
+    console.log(`Events ohne repeatGroupId: ${eventsWithoutRepeatId.length}`)
+    console.log(`Events mit repeatGroupId: ${Object.keys(groupedByRepeatId).length} Gruppen`)
+    
+    // Zeige Duplikate an
+    Object.entries(groupedByRepeatId).forEach(([repeatId, groupEvents]) => {
+      if (groupEvents.length > 1) {
+        console.log(`⚠️ Duplikate für repeatGroupId "${repeatId}":`)
+        groupEvents.forEach(event => {
+          console.log(`   - ${event.title} (${event.id}) - ${event.startDate} bis ${event.endDate}`)
+        })
+      }
+    })
+    
+    // Zeige Events nach repeatType
+    const byRepeatType: Record<string, Event[]> = {}
+    events.forEach(event => {
+      const type = event.repeatType || 'none'
+      if (!byRepeatType[type]) {
+        byRepeatType[type] = []
+      }
+      byRepeatType[type].push(event)
+    })
+    
+    console.log('📊 Events nach repeatType:')
+    Object.entries(byRepeatType).forEach(([type, typeEvents]) => {
+      console.log(`   ${type}: ${typeEvents.length} Events`)
+    })
+    
+    console.log('🔍 === ENDE EVENT-ANALYSE ===')
+  }, [events])
+
+  // Führe Analyse beim ersten Laden aus
+  React.useEffect(() => {
+    if (events.length > 0) {
+      analyzeEvents()
+    }
+  }, [events, analyzeEvents])
 
 
   /**
@@ -203,6 +426,8 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
     const isAllDay = isAllDayEvent(event)
     const isStart = isEventStartDay(event, day)
     const isEnd = isEventEndDay(event, day)
+    // Kollisions-Erkennung aktiviert
+    const hasCollision = hasCollisionsOnDay(event, day)
     
 
     
@@ -211,11 +436,8 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
     if (isAllDay) {
       eventClass += ' all-day-event'
     }
-    if (!isStart) {
-      eventClass += ' event-continuation'
-    }
-    if (!isEnd) {
-      eventClass += ' event-continues'
+    if (hasCollision) {
+      eventClass += ' event-collision'
     }
     
     // Erstelle den Tooltip-Text mit korrekter Zeit
@@ -224,6 +446,12 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
       tooltipText += ' (ganztägig)'
     } else {
       tooltipText += ` (${startTime} - ${endTime})`
+    }
+    if (hasCollision) {
+      tooltipText += ' ⚠️ Kollision mit anderem Termin'
+    }
+    if (event.description && event.description.trim()) {
+      tooltipText += `\n\nBemerkung: ${event.description}`
     }
     
     return (
@@ -234,18 +462,30 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
         onClick={() => onEventClick(event)}
         title={tooltipText}
       >
-        {isStart && !isAllDay && (
+        {!isAllDay && (
           <div className="event-time">
-            {startTime} - {endTime}
+            {startTime} - {endTime}{hasCollision && <span className="collision-indicator"> ⚠️</span>}{!isStart && !isEnd && <span className="event-continuation-indicator">●</span>}
           </div>
         )}
-        {isStart && isAllDay && (
+        {isAllDay && (
           <div className="event-time">
-            <span className="all-day-icon">📅</span>
+            <span className="all-day-icon">📅</span>{hasCollision && <span className="collision-indicator"> ⚠️</span>}{!isStart && !isEnd && <span className="event-continuation-indicator">●</span>}
           </div>
         )}
-        <div className="event-title">{event.title}</div>
-        {!isStart && !isEnd && <div className="event-continuation-indicator">●</div>}
+        <div className="event-title">
+          {event.title}{hasCollision && <span className="collision-indicator"> ⚠️</span>}
+          {event.description && event.description.trim() && (
+            <span 
+              className="event-info-icon" 
+              title={event.description}
+              onClick={(e) => {
+                e.stopPropagation() // Verhindert Event-Click
+              }}
+            >
+              ℹ️
+            </span>
+          )}
+        </div>
       </div>
     )
   }
@@ -307,13 +547,15 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
     const dayOfWeek = format(day, 'EEEE', { locale: de })
     const dateFormatted = format(day, 'dd.MM.yyyy')
     const holidays = getHolidaysForDate(day)
+    const hasHolidays = holidays.some(holiday => holiday.type === 'holiday')
     
     // CSS-Klassen für Styling
     const rowClasses = [
       'calendar-row',
       isWeekend(day) ? 'weekend-row' : '',
       isSunday(day) ? 'sunday-row' : '',
-      isToday(day) ? 'today-row' : ''
+      isToday(day) ? 'today-row' : '',
+      hasHolidays ? 'holiday-row' : ''
     ].filter(Boolean).join(' ')
     
     return (

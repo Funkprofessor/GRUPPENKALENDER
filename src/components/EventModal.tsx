@@ -27,7 +27,7 @@ const EventModal: React.FC<EventModalProps> = ({
     endDate: format(new Date(), 'yyyy-MM-dd'),
     startTime: '20:00', // Standardzeit
     endTime: '21:00',
-    color: '#FF6B6B',
+    color: '#808080', // Grau als neue Standardfarbe
     repeatType: 'none',
     repeatUntil: undefined
   })
@@ -54,7 +54,8 @@ const EventModal: React.FC<EventModalProps> = ({
   const availableColors: EventColor[] = [
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
     '#FFB347', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471',
-    '#82E0AA', '#F1948A', '#FAD7A0'
+    '#82E0AA', '#F1948A', '#FAD7A0', '#FFFFFF', '#E0E0E0', '#808080',
+    '#404040', '#000000'
   ]
 
   // Verfügbare Wiederholungstypen
@@ -114,6 +115,7 @@ const EventModal: React.FC<EventModalProps> = ({
         endTime: event.endTime,
         color: event.color,
         repeatType: event.repeatType,
+        repeatInterval: event.repeatInterval,
         repeatUntil: event.repeatUntil
       })
       
@@ -133,6 +135,10 @@ const EventModal: React.FC<EventModalProps> = ({
       if (event.repeatWeekOfMonth) {
         setRepeatWeekOfMonth(event.repeatWeekOfMonth)
       }
+      // Initialisiere repeatInterval wenn vorhanden
+      if (event.repeatInterval) {
+        setRepeatInterval(event.repeatInterval)
+      }
     } else {
       // Neues Event mit vorausgewählten Werten oder Standardwerten
       setFormData({
@@ -143,7 +149,7 @@ const EventModal: React.FC<EventModalProps> = ({
         endDate: preselectedDate || format(new Date(), 'yyyy-MM-dd'),
         startTime: '20:00', // Standardzeit
         endTime: '21:00',
-        color: '#FF6B6B',
+        color: '#808080', // Grau als neue Standardfarbe
         repeatType: 'none',
         repeatUntil: undefined
       })
@@ -444,6 +450,7 @@ const EventModal: React.FC<EventModalProps> = ({
         startDate: currentStartDate.toISOString().split('T')[0],
         endDate: currentEndDate.toISOString().split('T')[0],
         repeatGroupId: repeatGroupId, // Alle Events der Gruppe bekommen die gleiche ID
+        repeatInterval: repeatInterval, // Speichere das Intervall
         repeatWeekday: baseEvent.repeatWeekday,
         repeatWeekOfMonth: baseEvent.repeatWeekOfMonth
       })
@@ -454,6 +461,7 @@ const EventModal: React.FC<EventModalProps> = ({
           currentStartDate.setDate(currentStartDate.getDate() + repeatInterval)
           currentEndDate.setDate(currentEndDate.getDate() + repeatInterval)
           break
+
         case 'weekly':
           currentStartDate.setDate(currentStartDate.getDate() + (7 * repeatInterval))
           currentEndDate.setDate(currentEndDate.getDate() + (7 * repeatInterval))
@@ -539,6 +547,11 @@ const EventModal: React.FC<EventModalProps> = ({
     if (formData.repeatType === 'monthly_weekday') {
       updatedFormData.repeatWeekday = repeatWeekday
       updatedFormData.repeatWeekOfMonth = repeatWeekOfMonth
+    }
+    
+    // Füge repeatInterval hinzu wenn es eine Wiederholung gibt
+    if (formData.repeatType !== 'none') {
+      updatedFormData.repeatInterval = repeatInterval
     }
     
     // Debug-Ausgabe für die zu speichernden Daten

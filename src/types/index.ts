@@ -2,7 +2,7 @@
  * TypeScript-Typdefinitionen für den Kulturforum Kalender
  */
 
-// Verfügbare Farben für Events (16 Farben)
+// Verfügbare Farben für Events (20 Farben)
 export type EventColor = 
   | '#FF6B6B' // Rot
   | '#4ECDC4' // Türkis
@@ -18,8 +18,12 @@ export type EventColor =
   | '#F8C471' // Pfirsich
   | '#82E0AA' // Mintgrün
   | '#F1948A' // Rosa
-  | '#85C1E9' // Hellblau
   | '#FAD7A0' // Beige
+  | '#FFFFFF' // Weiß
+  | '#E0E0E0' // Hellgrau (neue Standardfarbe)
+  | '#808080' // Grau
+  | '#404040' // Dunkelgrau
+  | '#000000' // Schwarz
 
 // Wiederholungstypen für Events
 export type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'monthly_weekday'
@@ -46,6 +50,7 @@ export interface Event {
   endTime: string // HH:mm Format
   color: EventColor
   repeatType: RepeatType
+  repeatInterval?: number // Intervall für Wiederholungen (1 = jeden Tag, 2 = alle 2 Tage, etc.)
   repeatUntil?: string // ISO 8601 Format für Enddatum der Wiederholung
   repeatGroupId?: string // ID für die Wiederholungsgruppe
   repeatWeekday?: Weekday // Wochentag für monatliche Wiederholungen (1-7, Montag=1)

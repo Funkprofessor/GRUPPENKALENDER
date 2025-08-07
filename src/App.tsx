@@ -3,7 +3,8 @@ import { Event, Room, RepeatAction, CreateEventData } from './types'
 import { fetchEvents, createEvent, updateEvent, deleteEvent } from './api/events'
 import Calendar from './components/Calendar'
 import EventModal from './components/EventModal'
-import EventsList from './components/EventsList'
+import RecentEvents from './components/RecentEvents'
+
 import PrintModal from './components/PrintModal'
 import './App.css'
 
@@ -20,8 +21,9 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [preselectedDate, setPreselectedDate] = useState<string | undefined>(undefined)
   const [preselectedRoomId, setPreselectedRoomId] = useState<string | undefined>(undefined)
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
+
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false)
+  const [currentView, setCurrentView] = useState<'calendar' | 'recent'>('calendar')
 
   // Verfügbare Räume für den Kalender
   const rooms: Room[] = [
@@ -263,41 +265,42 @@ function App() {
       {/* Header mit Titel, View-Toggle und Add-Button */}
       <header className="app-header">
         <h1>Kulturforum Ansbach - Kalender</h1>
-                  <div className="header-controls">
-            <div className="view-toggle">
-              <button 
-                className={`view-btn ${viewMode === 'calendar' ? 'active' : ''}`}
-                onClick={() => setViewMode('calendar')}
-                title="Kalenderansicht"
-              >
-                📅 Kalender
-              </button>
-              <button 
-                className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
-                onClick={() => setViewMode('list')}
-                title="Listenansicht"
-              >
-                📋 Liste
-              </button>
-            </div>
-            <div className="action-buttons">
-              <button 
-                className="print-btn"
-                onClick={() => setIsPrintModalOpen(true)}
-                title="Drucken"
-              >
-                🖨️ Drucken
-              </button>
-              <button 
-                className="add-event-btn"
-                onClick={handleAddEvent}
-                title="Neuen Termin hinzufügen"
-              >
-                <span className="desktop-only">+ Neuer Termin</span>
-                <span className="mobile-only">+</span>
-              </button>
-            </div>
+        <div className="header-controls">
+          <div className="view-toggle">
+            <button 
+              className={`view-btn ${currentView === 'calendar' ? 'active' : ''}`}
+              onClick={() => setCurrentView('calendar')}
+              title="Kalender-Ansicht"
+            >
+              📅 Kalender
+            </button>
+            <button 
+              className={`view-btn ${currentView === 'recent' ? 'active' : ''}`}
+              onClick={() => setCurrentView('recent')}
+              title="Zuletzt bearbeitete Termine"
+            >
+              ⏰ Zuletzt bearbeitet
+            </button>
           </div>
+
+          <div className="action-buttons">
+            <button 
+              className="print-btn"
+              onClick={() => setIsPrintModalOpen(true)}
+              title="Drucken"
+            >
+              🖨️ Drucken
+            </button>
+            <button 
+              className="add-event-btn"
+              onClick={handleAddEvent}
+              title="Neuen Termin hinzufügen"
+            >
+              <span className="desktop-only">+ Neuer Termin</span>
+              <span className="mobile-only">+</span>
+            </button>
+          </div>
+        </div>
       </header>
 
       {/* Fehlermeldung anzeigen */}
@@ -316,9 +319,9 @@ function App() {
         </div>
       )}
 
-      {/* Hauptkomponente - Kalender oder Liste */}
+      {/* Hauptkomponente - Kalender oder Recent Events */}
       <main className="app-main">
-        {viewMode === 'calendar' ? (
+        {currentView === 'calendar' ? (
           <Calendar 
             events={events} 
             rooms={rooms} 
@@ -327,10 +330,11 @@ function App() {
             onAddEventWithPreselection={handleAddEventWithPreselection}
           />
         ) : (
-          <EventsList 
+          <RecentEvents 
             events={events} 
             rooms={rooms} 
             onEventClick={handleEventClick}
+            onAddEvent={handleAddEvent}
           />
         )}
       </main>
