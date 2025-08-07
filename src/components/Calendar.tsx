@@ -473,19 +473,20 @@ const Calendar: React.FC<CalendarProps> = ({ events, rooms, onEventClick, onAddE
           </div>
         )}
         <div className="event-title">
-          {event.title}{hasCollision && <span className="collision-indicator"> ⚠️</span>}
-          {event.description && event.description.trim() && (
-            <span 
-              className="event-info-icon" 
-              title={event.description}
-              onClick={(e) => {
-                e.stopPropagation() // Verhindert Event-Click
-              }}
-            >
-              ℹ️
-            </span>
-          )}
+          <span className="event-title-text">{event.title}</span>
+          {hasCollision && <span className="collision-indicator">⚠️</span>}
         </div>
+        {event.description && event.description.trim() && (
+          <span 
+            className="event-info-icon" 
+            title={event.description}
+            onClick={(e) => {
+              e.stopPropagation() // Verhindert Event-Click
+            }}
+          >
+            ℹ️
+          </span>
+        )}
       </div>
     )
   }

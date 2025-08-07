@@ -10,7 +10,7 @@ const sqlite3 = require('sqlite3').verbose()
 const path = require('path')
 
 // Server-Konfiguration
-const PORT = process.env.PORT || 5001
+const PORT = process.env.PORT || (process.env.NODE_ENV === 'production' ? 5001 : 3000)
 const DB_PATH = path.join(__dirname, 'calendar.db')
 
 // Express-App erstellen
@@ -739,7 +739,11 @@ app.use((err, req, res, next) => {
 // Server starten
 app.listen(PORT, () => {
   console.log(`Kulturforum Kalender Server läuft auf Port ${PORT}`)
+if (process.env.NODE_ENV === 'production') {
   console.log(`API verfügbar unter: http://localhost:${PORT}/api`)
+} else {
+  console.log(`Anwendung verfügbar unter: http://localhost:${PORT}`)
+}
 })
 
 // Graceful Shutdown

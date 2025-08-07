@@ -9,7 +9,11 @@ const { spawn } = require('child_process');
 const path = require('path');
 
 console.log('🚀 Starte Kulturforum Kalender...');
-console.log('🔧 Backend:  http://localhost:5001');
+if (process.env.NODE_ENV === 'production') {
+  console.log('🔧 Backend:  http://localhost:5001');
+} else {
+  console.log('🌐 Anwendung: http://localhost:3000');
+}
 console.log('');
 
 // Funktion zum Starten eines Prozesses
@@ -48,7 +52,6 @@ if (isDev) {
     if (code === 0) {
       console.log('✅ Frontend erfolgreich gebaut');
       startProcess('node', ['server/index.js'], 'Backend', '🔧');
-      startProcess('./node_modules/http-server/bin/http-server', ['dist'], 'Frontend', '🔧');
     } else {
       console.error('❌ Frontend Build fehlgeschlagen');
       process.exit(1);
@@ -78,6 +81,7 @@ if (isDev) {
     if (code === 0) {
       console.log('✅ Frontend erfolgreich gebaut');
       startProcess('node', ['server/index.js'], 'Backend', '🔧');
+      startProcess('./node_modules/http-server/bin/http-server', ['dist', '-p', '3000'], 'Frontend', '🔧');
     } else {
       console.error('❌ Frontend Build fehlgeschlagen');
       process.exit(1);

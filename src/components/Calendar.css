@@ -423,8 +423,11 @@
   font-size: 0.9rem;
   opacity: 0.8;
   cursor: pointer;
-  margin-left: 0.25rem;
   transition: opacity 0.2s ease;
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  z-index: 5;
 }
 
 .event-info-icon:hover {
@@ -456,6 +459,17 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   margin-top: 0.125rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.event-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .collision-indicator {
@@ -463,6 +477,7 @@
   font-size: 0.7rem;
   font-weight: bold;
   flex-shrink: 0;
+  margin-left: 0.25rem;
 }
 
 .event-collision {
