@@ -238,16 +238,16 @@ const BAVARIAN_SCHOOL_HOLIDAYS: Holiday[] = [
   { date: '2025-09-08', name: 'Sommerferien', type: 'school_holiday' },
 
   
-  // Herbstferien 2025 (25. Oktober - 2. November)
-  { date: '2025-10-25', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2025-10-26', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2025-10-27', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2025-10-28', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2025-10-29', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2025-10-30', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2025-10-31', name: 'Herbstferien', type: 'school_holiday' },
+  // Herbstferien 2025 (3. November - 7. November)
   { date: '2025-11-01', name: 'Herbstferien', type: 'school_holiday' },
   { date: '2025-11-02', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2025-11-03', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2025-11-04', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2025-11-05', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2025-11-06', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2025-11-07', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2025-11-08', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2025-11-09', name: 'Herbstferien', type: 'school_holiday' },
   
   // Weihnachtsferien 2025 (20. Dezember - 5. Januar 2026)
   { date: '2025-12-20', name: 'Weihnachtsferien', type: 'school_holiday' },
@@ -355,16 +355,16 @@ const BAVARIAN_SCHOOL_HOLIDAYS: Holiday[] = [
   { date: '2026-09-08', name: 'Sommerferien', type: 'school_holiday' },
   { date: '2026-09-09', name: 'Sommerferien', type: 'school_holiday' },
   
-  // 2026 - Herbstferien (24. Oktober - 1. November)
-  { date: '2026-10-24', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2026-10-25', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2026-10-26', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2026-10-27', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2026-10-28', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2026-10-29', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2026-10-30', name: 'Herbstferien', type: 'school_holiday' },
-  { date: '2026-10-31', name: 'Herbstferien', type: 'school_holiday' },
+  // 2026 - Herbstferien (2. November - 6. November)
+  { date: '2026-31-10', name: 'Herbstferien', type: 'school_holiday' },
   { date: '2026-11-01', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2026-11-02', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2026-11-03', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2026-11-04', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2026-11-05', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2026-11-06', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2026-11-07', name: 'Herbstferien', type: 'school_holiday' },
+  { date: '2026-11-08', name: 'Herbstferien', type: 'school_holiday' },
   
   // 2026 - Weihnachtsferien (19. Dezember - 6. Januar 2027)
   { date: '2026-12-19', name: 'Weihnachtsferien', type: 'school_holiday' },
